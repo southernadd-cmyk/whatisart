@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>What Is Art Comic Showcase</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,600;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body data-page="intro">
+  <div class="reel-backdrop" id="reelBackdrop" aria-hidden="true"></div>
+
+  <button type="button" class="reel-sound-btn" id="reelSoundBtn" hidden aria-pressed="false" aria-label="Turn sound on for the background reel">
+    Sound on
+  </button>
+
+  <div class="atmosphere" aria-hidden="true">
+    <div class="atmosphere__grain"></div>
+    <div class="atmosphere__scan"></div>
+    <div class="atmosphere__grid"></div>
+  </div>
+
+  <header class="concept-shell">
+    <div class="concept-shell__meta">
+      <span class="specimen-id" id="entryCount"></span>
+    </div>
+  </header>
+
+  <main class="page" id="main">
+    <section class="stage">
+      <div class="stage__titleblock">
+        <h1 class="site-title" data-text="What Is Art: Comic Archive">What Is Art: Comic Archive</h1>
+        <p class="project-intro">
+          AI-generated portraits paired with artist quotes and original haiku, exploring authorship, impersonation, and the boundaries of the "artist" category.
+          Originally published on Instagram @whatisart.comic
+        </p>
+        <p class="header-links">
+          <a href="https://www.instagram.com/whatisart.comic/" target="_blank" rel="noopener noreferrer">View on Instagram: @whatisart.comic</a>
+          <a href="./statement.html">View artist statement</a>
+        </p>
+      </div>
+
+      <div id="appError" class="app-error" role="alert"></div>
+
+      <div class="hero hero--intro">
+        <aside class="index-panel">
+          <div class="index-panel__head">
+            <h2 class="index-panel__title">Index</h2>
+            <p class="index-panel__note">Open an artist page to view the 1x4 comic strip and haiku.</p>
+          </div>
+          <ul class="artist-list" id="artistList"></ul>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <script src="./app.js"></script>
+</body>
+</html>

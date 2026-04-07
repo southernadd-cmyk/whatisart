@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Artist | What Is Art Comic</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,600;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body data-page="artist">
+  <div class="reel-backdrop" id="reelBackdrop" aria-hidden="true"></div>
+
+  <button type="button" class="reel-sound-btn" id="reelSoundBtn" hidden aria-pressed="false" aria-label="Turn sound on for the background reel">
+    Sound on
+  </button>
+
+  <div class="atmosphere" aria-hidden="true">
+    <div class="atmosphere__grain"></div>
+    <div class="atmosphere__scan"></div>
+    <div class="atmosphere__grid"></div>
+  </div>
+
+  <main class="page page--artist" id="artistPage">
+    <nav class="artist-step-nav" id="artistStepNav" aria-label="Previous and next artist"></nav>
+
+    <div class="toolbar toolbar--artist">
+      <a class="back-link" href="./index.html">Index</a>
+      <span class="post-date" id="postDate"></span>
+    </div>
+
+    <section class="stage stage--artist">
+      <div class="stage__titleblock stage__titleblock--artist">
+        <h1 class="site-title site-title--artist" id="artistName">Artist</h1>
+        <p class="subtitle">Comic strip layout (1x4) with haiku</p>
+      </div>
+
+      <div id="appError" class="app-error" role="alert"></div>
+
+      <div class="artist-layout">
+        <div class="strip-wrap">
+          <div class="strip-label">Strip <span id="stripMeta">1×4</span></div>
+          <div class="strip-1x4" id="panelStrip"></div>
+        </div>
+        <aside class="haiku-box">
+          <div class="haiku" id="haikuText"></div>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <script src="./app.js"></script>
+</body>
+</html>
