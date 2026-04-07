@@ -376,8 +376,9 @@ function resolveCanonicalArtist(captionLines, fallbackName = "unknown-artist") {
     }
   }
 
-  // If no meaningful match, keep a humanized inferred fallback.
-  return bestScore <= 0 ? fallbackName : bestName;
+  // Avoid false positives from single-token overlaps (e.g. one shared first name).
+  // Require at least a modest confidence before forcing canonical remapping.
+  return bestScore < 2 ? fallbackName : bestName;
 }
 
 function parsePosts(html) {
@@ -419,6 +420,10 @@ function parseReel(html) {
   };
 }
 
+function countPostCards(html) {
+  return (html.match(/uiBoxWhite noborder/g) || []).length;
+}
+
 async function getData() {
   const [postsHtml, reelsHtml] = await Promise.all([
     loadHtml("./your_instagram_activity/media/posts_1.html"),
@@ -426,6 +431,7 @@ async function getData() {
   ]);
   return {
     posts: parsePosts(postsHtml),
+    postCount: countPostCards(postsHtml),
     reel: parseReel(reelsHtml),
   };
 }
@@ -475,12 +481,12 @@ function buildArtistEntries(posts, timelineMode = "latest") {
   return [...ordered, ...unmatched];
 }
 
-function renderIntro({ posts }) {
+function renderIntro({ posts, postCount }) {
   const artistList = document.getElementById("artistList");
 
   const mode = "latest";
   const entries = buildArtistEntries(posts, mode);
-  setEntryCount(entries.length);
+  setEntryCount(postCount);
   artistList.innerHTML = entries
     .map(
       (post) =>
