@@ -26,7 +26,7 @@ const COMIC_ORDER = [
   "Enheduanna",
   "Sherrie Levine",
   "Plato",
-  "Randy Mario Poffo (Macho Man Randy Savage)",
+  "Randy Mario Poffo",
   "Grayson Perry",
   "George Bernard Shaw",
   "Friedrich Nietzsche",
