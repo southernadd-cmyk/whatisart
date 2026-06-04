@@ -637,16 +637,20 @@ function inferArtist(lines) {
 const COMIC_ORDER = ["Stephanie Dinkins","Eric Cantona","Albrecht Dürer","Tyler the Creator","Slavoj Žižek","Yoko Ono","Michelangelo","Niyi Olagunju","Vivienne Westwood","Stanley Kubrick","Claes Oldenburg","Judy Chicago","Muhammad Ali","Sofia Isella","Gerhard Richter","Gwen John","Enheduanna","Sherrie Levine","Plato","Randy Mario Poffo","Grayson Perry","George Bernard Shaw","Friedrich Nietzsche","Bob Ross","David Choe","Frida Kahlo","Alberto Giacometti","Kurt Vonnegut Jr.","Rick Rubin","Jim Dine","James Baldwin","Henry Ward Beecher","Ansel Adams","Kara Walker","David Bowie","Wassily Kandinsky","Kurt Cobain","Henri Matisse","René Magritte","David Hockney","David Salle","Akira Toriyama","King Robbo","Keith Haring","Henry Ossawa Tanner","Hito Steyerl","J. M. W. Turner","Francis Bacon","Joseph Beuys","Leonardo da Vinci","William Blake","Molière","Ai Weiwei","Amoako Boafo","David Szauder","Jeff Koons","Bob Dylan","Odilon Redon","Rafael Lozano-Hemmer","Tino Sehgal","Leo Tolstoy","Fiona Rae","Linder","Joseph Kosuth","Artemisia Gentileschi","Christine de Pizan","M. C. Escher","Damien Hirst","Lawrence Weiner","Alan Moore","James Abbott Whistler","Martin Kippenberger","Blek le Rat","Hunter S. Thompson","Cindy Sherman","Erykah Badu","MF DOOM","Edgar Degas","Georgia O'Keeffe","Veronica Ryan","Sol LeWitt","Salvador Dalí","Donald Judd","Paul Cézanne","Tracey Emin","Vincent van Gogh","Pablo Picasso","Jean-Michel Basquiat","Banksy","Jackson Pollock","Barbara Kruger","Andy Warhol","Marcel Duchamp"];
 function resolveCanonicalArtist(captionLines, fallbackName = "unknown-artist") {
   const caption = normalizeCompare(captionLines.join(" "));
+  // Whole-word match: token must be preceded and followed by a non-word character (or string boundary)
+  function wordMatch(haystack, needle) {
+    return new RegExp(`(?<![a-z0-9])${needle.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?![a-z0-9])`).test(haystack);
+  }
   let bestName = fallbackName, bestScore = -1;
   for (const candidate of COMIC_ORDER) {
     const candidateNorm = normalizeCompare(candidate);
     const tokens = candidateNorm.split(" ").filter(t => t.length > 2);
     if (!tokens.length) continue;
     let score = 0;
-    if (caption.includes(candidateNorm)) score += 10;
-    score += tokens.filter(t => caption.includes(t)).length;
+    if (wordMatch(caption, candidateNorm)) score += 10;
+    score += tokens.filter(t => wordMatch(caption, t)).length;
     const finalToken = tokens[tokens.length - 1];
-    if (finalToken && caption.includes(finalToken)) score += 2;
+    if (finalToken && wordMatch(caption, finalToken)) score += 2;
     if (score > bestScore) { bestScore = score; bestName = candidate; }
   }
   return bestScore < 2 ? fallbackName : bestName;
