@@ -346,6 +346,13 @@ function extractHaiku(lines, artist) {
 
 function resolveCanonicalArtist(captionLines, fallbackName = "unknown-artist") {
   const caption = normalizeCompare(captionLines.join(" "));
+
+  function wordMatch(haystack, needle) {
+    return new RegExp(
+      `(?<![a-z0-9])${needle.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?![a-z0-9])`
+    ).test(haystack);
+  }
+
   let bestName = fallbackName;
   let bestScore = -1;
 
@@ -357,16 +364,15 @@ function resolveCanonicalArtist(captionLines, fallbackName = "unknown-artist") {
     }
 
     let score = 0;
-    if (caption.includes(candidateNorm)) {
+    if (wordMatch(caption, candidateNorm)) {
       score += 10;
     }
 
-    const tokenMatches = tokens.filter((t) => caption.includes(t)).length;
+    const tokenMatches = tokens.filter((t) => wordMatch(caption, t)).length;
     score += tokenMatches;
 
-    // Weight surname-like final token for better disambiguation.
     const finalToken = tokens[tokens.length - 1];
-    if (finalToken && caption.includes(finalToken)) {
+    if (finalToken && wordMatch(caption, finalToken)) {
       score += 2;
     }
 
@@ -376,8 +382,6 @@ function resolveCanonicalArtist(captionLines, fallbackName = "unknown-artist") {
     }
   }
 
-  // Avoid false positives from single-token overlaps (e.g. one shared first name).
-  // Require at least a modest confidence before forcing canonical remapping.
   return bestScore < 2 ? fallbackName : bestName;
 }
 
