@@ -31,7 +31,6 @@
     }
 
     *, *::before, *::after { box-sizing: border-box; }
-
     html { scroll-behavior: smooth; }
 
     body {
@@ -44,7 +43,6 @@
       overflow-x: hidden;
     }
 
-    /* ── GRAIN OVERLAY ── */
     body::before {
       content: "";
       position: fixed;
@@ -56,7 +54,6 @@
       background-size: 200px 200px;
     }
 
-    /* ── LAYOUT ── */
     .shell {
       max-width: 1400px;
       margin: 0 auto;
@@ -73,7 +70,6 @@
       flex-wrap: wrap;
       margin-bottom: 32px;
     }
-
     .admin-header h1 {
       font-family: var(--font-mono);
       font-size: 12px;
@@ -83,7 +79,6 @@
       color: var(--signal);
       margin: 0;
     }
-
     .admin-header .back-link {
       font-family: var(--font-mono);
       font-size: 11px;
@@ -94,7 +89,6 @@
       transition: color 0.15s;
     }
     .admin-header .back-link:hover { color: var(--plinth); }
-
     .admin-header .header-status {
       font-family: var(--font-mono);
       font-size: 11px;
@@ -114,7 +108,6 @@
       gap: 14px 20px;
       align-items: end;
     }
-
     .config-panel h2 {
       font-family: var(--font-mono);
       font-size: 10px;
@@ -124,13 +117,7 @@
       margin: 0 0 16px;
       grid-column: 1 / -1;
     }
-
-    .field {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
+    .field { display: flex; flex-direction: column; gap: 6px; }
     .field label {
       font-family: var(--font-mono);
       font-size: 10px;
@@ -138,7 +125,6 @@
       text-transform: uppercase;
       color: var(--plinth-dim);
     }
-
     .field input {
       background: var(--void);
       border: 1px solid var(--border);
@@ -153,7 +139,6 @@
     }
     .field input:focus { border-color: var(--signal); }
     .field input::placeholder { color: rgba(232,228,220,0.2); }
-
     .config-actions {
       grid-column: 1 / -1;
       display: flex;
@@ -161,7 +146,6 @@
       align-items: center;
       flex-wrap: wrap;
     }
-
     .btn {
       font-family: var(--font-mono);
       font-size: 11px;
@@ -182,7 +166,6 @@
     .btn-amber { color: var(--amber); }
     .btn-amber:hover { background: var(--amber); color: var(--void); }
     .btn:disabled { opacity: 0.35; cursor: not-allowed; }
-
     .config-msg {
       font-family: var(--font-mono);
       font-size: 11px;
@@ -192,7 +175,7 @@
     .config-msg.ok { color: var(--signal); background: var(--signal-glow); }
     .config-msg.err { color: var(--heat); background: var(--heat-soft); }
 
-    /* ── SEARCH / FILTER ── */
+    /* ── TOOLBAR ── */
     .toolbar {
       display: flex;
       gap: 12px;
@@ -200,7 +183,6 @@
       margin-bottom: 24px;
       flex-wrap: wrap;
     }
-
     .search-input {
       background: var(--void-raised);
       border: 1px solid var(--border);
@@ -215,44 +197,125 @@
     }
     .search-input:focus { border-color: var(--signal); }
     .search-input::placeholder { color: rgba(232,228,220,0.2); }
-
     .count-badge {
       font-family: var(--font-mono);
       font-size: 11px;
       color: var(--plinth-dim);
+    }
+    .toolbar-right {
       margin-left: auto;
+      display: flex;
+      gap: 8px;
+      align-items: center;
     }
 
-    /* ── ARTISTS GRID ── */
-    .artists-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    /* ── ARTISTS LIST (collapsed accordion) ── */
+    .artists-list {
+      display: flex;
+      flex-direction: column;
       gap: 2px;
     }
 
-    /* ── ARTIST CARD ── */
-    .artist-card {
+    /* ── ARTIST ROW (collapsed state) ── */
+    .artist-row {
       background: var(--void-raised);
       border: 1px solid var(--border);
-      padding: 16px;
+      border-radius: 3px;
       transition: border-color 0.15s;
     }
-    .artist-card:hover { border-color: var(--border-signal); }
+    .artist-row:hover { border-color: var(--border-signal); }
+    .artist-row.is-open { border-color: var(--border-signal); }
+    .artist-row.has-pending { border-color: rgba(255,184,48,0.4); }
+    .artist-row.has-pending.is-open { border-color: var(--amber); }
 
-    .artist-card__name {
+    /* Row header (always visible, click to toggle) */
+    .artist-row__header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 11px 16px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .artist-row__chevron {
+      font-size: 11px;
+      color: var(--plinth-dim);
+      transition: transform 0.2s ease;
+      flex-shrink: 0;
+      line-height: 1;
+    }
+    .artist-row.is-open .artist-row__chevron { transform: rotate(90deg); }
+
+    .artist-row__name {
       font-family: var(--font-display);
       font-size: 13px;
       font-weight: 700;
       color: var(--plinth-warm);
-      margin: 0 0 12px;
       letter-spacing: 0.02em;
+      flex: 1;
+      min-width: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
+    .artist-row__meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .artist-row__pending-pill {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      background: var(--amber-soft);
+      color: var(--amber);
+      padding: 2px 7px;
+      border-radius: 2px;
+      display: none;
+    }
+    .artist-row.has-pending .artist-row__pending-pill { display: inline-block; }
+
+    .artist-row__status {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--plinth-dim);
+      min-width: 60px;
+      text-align: right;
+    }
+    .artist-row__status.ready  { color: var(--signal); }
+    .artist-row__status.uploading { color: var(--amber); }
+    .artist-row__status.error  { color: var(--heat); }
+
+    /* ── COLLAPSIBLE BODY ── */
+    .artist-row__body {
+      display: none;
+      padding: 0 16px 14px;
+      border-top: 1px solid var(--border);
+    }
+    .artist-row.is-open .artist-row__body { display: block; }
+
+    /* inner body layout */
+    .artist-row__inner {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+      padding-top: 14px;
+      flex-wrap: wrap;
+    }
+
+    /* ── PANEL GRID (inside expanded card) ── */
     .panel-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 4px;
-      margin-bottom: 12px;
+      flex: 0 0 auto;
+      width: min(100%, 340px);
     }
 
     .panel-slot {
@@ -263,14 +326,12 @@
       overflow: hidden;
       border-radius: 2px;
     }
-
     .panel-slot img {
       width: 100%;
       height: 100%;
       object-fit: cover;
       display: block;
     }
-
     .panel-slot__label {
       position: absolute;
       top: 3px;
@@ -283,8 +344,6 @@
       border-radius: 2px;
       pointer-events: none;
     }
-
-    /* Upload overlay */
     .panel-slot__upload {
       position: absolute;
       inset: 0;
@@ -298,12 +357,7 @@
       cursor: pointer;
     }
     .panel-slot:hover .panel-slot__upload { opacity: 1; }
-
-    .panel-slot__upload-icon {
-      font-size: 18px;
-      margin-bottom: 3px;
-      line-height: 1;
-    }
+    .panel-slot__upload-icon { font-size: 18px; margin-bottom: 3px; line-height: 1; }
     .panel-slot__upload-text {
       font-family: var(--font-mono);
       font-size: 9px;
@@ -312,7 +366,6 @@
       text-transform: uppercase;
       text-align: center;
     }
-
     .panel-slot input[type="file"] {
       position: absolute;
       inset: 0;
@@ -321,8 +374,6 @@
       width: 100%;
       height: 100%;
     }
-
-    /* pending / uploading states */
     .panel-slot.pending { border-color: var(--amber); }
     .panel-slot.pending .panel-slot__label { background: var(--amber); color: var(--void); }
     .panel-slot.uploading { border-color: var(--signal); }
@@ -330,8 +381,6 @@
     .panel-slot.done { border-color: var(--signal); }
     .panel-slot.error { border-color: var(--heat); }
     .panel-slot.error .panel-slot__label { background: var(--heat); color: #fff; }
-
-    /* upload progress ring */
     .panel-slot__spinner {
       display: none;
       position: absolute;
@@ -341,7 +390,6 @@
       background: rgba(7,7,10,0.8);
     }
     .panel-slot.uploading .panel-slot__spinner { display: flex; }
-
     @keyframes spin { to { transform: rotate(360deg); } }
     .spinner-ring {
       width: 20px; height: 20px;
@@ -351,23 +399,34 @@
       animation: spin 0.7s linear infinite;
     }
 
-    /* card actions */
+    /* placeholder shimmer while image loads */
+    .panel-slot__shimmer {
+      position: absolute;
+      inset: 0;
+      background: var(--void-mid);
+    }
+    .panel-slot img.loaded + .panel-slot__shimmer,
+    .panel-slot img[src]:not([src=""]) ~ .panel-slot__shimmer { opacity: 0; }
+
+    /* card actions (inside expanded body) */
     .card-actions {
       display: flex;
       gap: 8px;
       align-items: center;
+      flex: 1;
+      min-width: 160px;
+      flex-direction: column;
+      align-items: flex-start;
     }
-
-    .card-status {
+    .path-hint {
       font-family: var(--font-mono);
-      font-size: 10px;
-      margin-left: auto;
-      padding: 3px 7px;
-      border-radius: 2px;
+      font-size: 9px;
+      color: var(--plinth-dim);
+      opacity: 0.5;
+      word-break: break-all;
+      display: none;
+      margin-top: 4px;
     }
-    .card-status.ready { color: var(--signal); }
-    .card-status.idle { color: var(--plinth-dim); }
-    .card-status.error { color: var(--heat); }
 
     /* ── LOADING / ERROR STATE ── */
     .state-block {
@@ -414,11 +473,10 @@
     .toast.ok  { border-color: var(--signal); color: var(--signal); }
     .toast.err { border-color: var(--heat);   color: var(--heat);   }
     .toast.inf { border-color: var(--amber);  color: var(--amber);  }
+    @keyframes slideIn { from { transform: translateX(16px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    @keyframes fadeOut { to { opacity: 0; transform: translateY(4px); } }
 
-    @keyframes slideIn  { from { transform: translateX(16px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-    @keyframes fadeOut  { to { opacity: 0; transform: translateY(4px); } }
-
-    /* ── COMMIT MESSAGE MODAL ── */
+    /* ── COMMIT MODAL ── */
     .modal-backdrop {
       position: fixed;
       inset: 0;
@@ -475,7 +533,6 @@
       line-height: 1.5;
     }
 
-    /* ── SCROLLBAR ── */
     ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-track { background: var(--void); }
     ::-webkit-scrollbar-thumb { background: var(--wire); border-radius: 3px; }
@@ -485,14 +542,12 @@
 <body>
 
 <div class="shell">
-  <!-- HEADER -->
   <header class="admin-header">
     <h1>⬡ Admin Console</h1>
     <span class="header-status" id="headerStatus">Load posts to begin</span>
     <a class="back-link" href="./index.html">← Index</a>
   </header>
 
-  <!-- GITHUB CONFIG -->
   <section class="config-panel" id="configPanel">
     <h2>GitHub Configuration</h2>
     <div class="field">
@@ -518,23 +573,23 @@
     </div>
   </section>
 
-  <!-- SEARCH TOOLBAR -->
   <div class="toolbar">
     <input class="search-input" type="text" id="searchInput" placeholder="Filter artists…" />
     <span class="count-badge" id="countBadge"></span>
-    <button class="btn btn-amber" id="uploadAllBtn" disabled style="display:none">Upload All Pending</button>
+    <div class="toolbar-right">
+      <button class="btn btn-signal" id="expandAllBtn" style="display:none;font-size:10px;padding:6px 12px">Expand All</button>
+      <button class="btn btn-signal" id="collapseAllBtn" style="display:none;font-size:10px;padding:6px 12px">Collapse All</button>
+      <button class="btn btn-amber" id="uploadAllBtn" disabled style="display:none">Upload All Pending</button>
+    </div>
   </div>
 
-  <!-- ARTISTS GRID -->
   <div id="loadingState" class="state-block"><span class="dot-pulse">Loading posts</span></div>
   <div id="errorState"   class="state-block" style="display:none"></div>
-  <div class="artists-grid" id="artistsGrid" style="display:none"></div>
+  <div class="artists-list" id="artistsList" style="display:none"></div>
 </div>
 
-<!-- TOAST TRAY -->
 <div class="toast-tray" id="toastTray"></div>
 
-<!-- COMMIT MESSAGE MODAL -->
 <div class="modal-backdrop hidden" id="commitModal">
   <div class="modal">
     <h3>Commit Message</h3>
@@ -549,16 +604,12 @@
 
 <script>
 // ─────────────────────────────────────────────
-// COPY OF slugify / parsing helpers from app.js
+// HELPERS (slugify / parsing — same as app.js)
 // ─────────────────────────────────────────────
 function normalizeCompare(text) {
-  return (text || "")
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9\s]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
+  return (text || "").toLowerCase().normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9\s]/g, " ")
+    .replace(/\s+/g, " ").trim();
 }
 function slugify(text) {
   return normalizeCompare(text).replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
@@ -644,12 +695,15 @@ function buildArtistEntries(posts) {
 // STATE
 // ─────────────────────────────────────────────
 let ghConfig = { owner:"", repo:"", branch:"main", token:"" };
-let pendingUploads = new Map(); // slotKey -> { artistSlug, panelIndex, repoPath, file, previewUrl }
+let pendingUploads = new Map(); // slotKey -> { entry, panelIndex, repoPath, file, previewUrl }
 let allEntries = [];
 let filteredEntries = [];
 
+// Track which rows have had their images loaded
+const loadedRows = new Set();
+
 // ─────────────────────────────────────────────
-// STORAGE (sessionStorage — token never persisted long-term)
+// STORAGE
 // ─────────────────────────────────────────────
 const CONFIG_KEY = "admin_gh_config";
 function loadSavedConfig() {
@@ -696,7 +750,6 @@ async function ghGet(path) {
   if (!r.ok) throw new Error(`GitHub ${r.status}: ${(await r.json()).message}`);
   return r.json();
 }
-
 async function ghPut(path, content64, message, sha) {
   const { owner, repo, branch, token } = ghConfig;
   const body = { message, content: content64, branch };
@@ -709,7 +762,6 @@ async function ghPut(path, content64, message, sha) {
   if (!r.ok) throw new Error(`GitHub ${r.status}: ${(await r.json()).message}`);
   return r.json();
 }
-
 async function testGitHub() {
   const { owner, repo, branch, token } = ghConfig;
   if (!owner || !repo || !token) throw new Error("Fill in owner, repo, and token");
@@ -719,7 +771,6 @@ async function testGitHub() {
   if (!r.ok) throw new Error(`GitHub ${r.status}: ${(await r.json()).message}`);
   return r.json();
 }
-
 async function fileToBase64(file) {
   return new Promise((res, rej) => {
     const reader = new FileReader();
@@ -739,7 +790,6 @@ function showConfigMsg(text, type) {
   el.style.display = "inline-block";
   setTimeout(() => { el.style.display = "none"; }, 4000);
 }
-
 document.getElementById("saveConfigBtn").addEventListener("click", async () => {
   saveConfig();
   const btn = document.getElementById("saveConfigBtn");
@@ -756,7 +806,6 @@ document.getElementById("saveConfigBtn").addEventListener("click", async () => {
     btn.textContent = "Save & Load";
   }
 });
-
 document.getElementById("clearConfigBtn").addEventListener("click", () => {
   sessionStorage.removeItem(CONFIG_KEY);
   ["ghOwner","ghRepo","ghBranch","ghToken"].forEach(id => document.getElementById(id).value = "");
@@ -770,16 +819,15 @@ document.getElementById("clearConfigBtn").addEventListener("click", () => {
 async function initLoad() {
   document.getElementById("loadingState").style.display = "block";
   document.getElementById("errorState").style.display   = "none";
-  document.getElementById("artistsGrid").style.display  = "none";
-
+  document.getElementById("artistsList").style.display  = "none";
   try {
     const response = await fetch("./your_instagram_activity/media/posts_1.html");
     if (!response.ok) throw new Error("Could not load posts_1.html — run this page from the project root.");
     const html = await response.text();
     const posts = parsePosts(html);
     allEntries = buildArtistEntries(posts);
-    document.getElementById("headerStatus").textContent = `${allEntries.length} artists loaded`;
-    renderGrid(allEntries);
+    document.getElementById("headerStatus").textContent = `${allEntries.length} artists — click to expand`;
+    renderList(allEntries);
   } catch (e) {
     document.getElementById("loadingState").style.display = "none";
     const errEl = document.getElementById("errorState");
@@ -789,31 +837,109 @@ async function initLoad() {
 }
 
 // ─────────────────────────────────────────────
-// RENDER
+// LAZY IMAGE LOADING
+// Defers setting img.src until the row is opened.
 // ─────────────────────────────────────────────
-function renderGrid(entries) {
-  filteredEntries = entries;
-  const grid = document.getElementById("artistsGrid");
-  document.getElementById("loadingState").style.display = "none";
-
-  document.getElementById("countBadge").textContent = `${entries.length} artists`;
-  document.getElementById("uploadAllBtn").style.display = pendingUploads.size > 0 ? "inline-block" : "none";
-
-  grid.innerHTML = "";
-  entries.forEach(entry => grid.appendChild(buildCard(entry)));
-  grid.style.display = "grid";
+function loadRowImages(rowEl) {
+  const slug = rowEl.dataset.slug;
+  if (loadedRows.has(slug)) return;
+  loadedRows.add(slug);
+  rowEl.querySelectorAll("img[data-src]").forEach(img => {
+    img.src = img.dataset.src;
+    img.removeAttribute("data-src");
+    img.addEventListener("load", () => img.classList.add("loaded"), { once: true });
+  });
 }
 
-function buildCard(entry) {
-  const card = document.createElement("div");
-  card.className = "artist-card";
-  card.dataset.slug = entry.slug;
+// ─────────────────────────────────────────────
+// TOGGLE ROW
+// ─────────────────────────────────────────────
+function toggleRow(rowEl) {
+  const isOpen = rowEl.classList.contains("is-open");
+  if (!isOpen) {
+    rowEl.classList.add("is-open");
+    loadRowImages(rowEl);
+  } else {
+    rowEl.classList.remove("is-open");
+  }
+}
 
-  const title = document.createElement("div");
-  title.className = "artist-card__name";
-  title.textContent = entry.artist;
-  card.appendChild(title);
+// ─────────────────────────────────────────────
+// RENDER
+// ─────────────────────────────────────────────
+function renderList(entries) {
+  filteredEntries = entries;
+  const list = document.getElementById("artistsList");
+  document.getElementById("loadingState").style.display = "none";
+  document.getElementById("countBadge").textContent = `${entries.length} artists`;
+  document.getElementById("expandAllBtn").style.display = entries.length ? "inline-block" : "none";
+  document.getElementById("collapseAllBtn").style.display = entries.length ? "inline-block" : "none";
+  document.getElementById("uploadAllBtn").style.display = pendingUploads.size > 0 ? "inline-block" : "none";
 
+  list.innerHTML = "";
+  entries.forEach(entry => list.appendChild(buildRow(entry)));
+  list.style.display = "flex";
+}
+
+function buildRow(entry) {
+  const row = document.createElement("div");
+  row.className = "artist-row";
+  row.dataset.slug = entry.slug;
+
+  // ── HEADER (always visible) ──
+  const header = document.createElement("div");
+  header.className = "artist-row__header";
+  header.setAttribute("role", "button");
+  header.setAttribute("aria-expanded", "false");
+  header.setAttribute("tabindex", "0");
+
+  const chevron = document.createElement("span");
+  chevron.className = "artist-row__chevron";
+  chevron.textContent = "▶";
+  chevron.setAttribute("aria-hidden", "true");
+
+  const name = document.createElement("span");
+  name.className = "artist-row__name";
+  name.textContent = entry.artist;
+
+  const meta = document.createElement("div");
+  meta.className = "artist-row__meta";
+
+  const pendingPill = document.createElement("span");
+  pendingPill.className = "artist-row__pending-pill";
+  pendingPill.textContent = "pending";
+  meta.appendChild(pendingPill);
+
+  const statusSpan = document.createElement("span");
+  statusSpan.className = "artist-row__status";
+  statusSpan.id = `status-${entry.slug}`;
+  statusSpan.textContent = `${entry.panels.length} panels`;
+  meta.appendChild(statusSpan);
+
+  header.appendChild(chevron);
+  header.appendChild(name);
+  header.appendChild(meta);
+
+  // Toggle on click or keyboard
+  header.addEventListener("click", () => {
+    const open = row.classList.contains("is-open");
+    toggleRow(row);
+    header.setAttribute("aria-expanded", String(!open));
+  });
+  header.addEventListener("keydown", e => {
+    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); header.click(); }
+  });
+
+  row.appendChild(header);
+
+  // ── BODY (hidden until opened) ──
+  const body = document.createElement("div");
+  body.className = "artist-row__body";
+
+  const inner = document.createElement("div");
+  inner.className = "artist-row__inner";
+
+  // Panel grid
   const panelGrid = document.createElement("div");
   panelGrid.className = "panel-grid";
 
@@ -827,19 +953,25 @@ function buildCard(entry) {
     label.textContent = `P${i + 1}`;
     slot.appendChild(label);
 
+    // Shimmer placeholder
+    const shimmer = document.createElement("div");
+    shimmer.className = "panel-slot__shimmer";
+    slot.appendChild(shimmer);
+
+    // Image — use data-src so it doesn't load until expanded
     const img = document.createElement("img");
-    img.src = `./${src.replace(/^\.?\//, "")}`;
+    img.dataset.src = `./${src.replace(/^\.?\//, "")}`;
     img.alt = `${entry.artist} panel ${i+1}`;
-    img.loading = "lazy";
+    img.style.position = "relative"; // sit above shimmer
     slot.appendChild(img);
 
-    // upload overlay
+    // Upload overlay
     const overlay = document.createElement("div");
     overlay.className = "panel-slot__upload";
     overlay.innerHTML = `<div class="panel-slot__upload-icon">↑</div><div class="panel-slot__upload-text">Replace</div>`;
     slot.appendChild(overlay);
 
-    // file input
+    // File input
     const fileInput = document.createElement("input");
     fileInput.type = "file";
     fileInput.accept = "image/*";
@@ -847,7 +979,7 @@ function buildCard(entry) {
     fileInput.addEventListener("change", () => handleFileSelect(entry, i, src, fileInput, slot, img));
     slot.appendChild(fileInput);
 
-    // spinner
+    // Spinner
     const spinner = document.createElement("div");
     spinner.className = "panel-slot__spinner";
     spinner.innerHTML = `<div class="spinner-ring"></div>`;
@@ -856,9 +988,7 @@ function buildCard(entry) {
     panelGrid.appendChild(slot);
   });
 
-  card.appendChild(panelGrid);
-
-  // card actions
+  // Card actions (upload button + path hint)
   const actions = document.createElement("div");
   actions.className = "card-actions";
 
@@ -869,23 +999,20 @@ function buildCard(entry) {
   uploadBtn.textContent = "Upload Pending";
   uploadBtn.disabled = true;
   uploadBtn.id = `upload-${entry.slug}`;
-  uploadBtn.addEventListener("click", () => uploadCardPending(entry));
+  uploadBtn.addEventListener("click", e => { e.stopPropagation(); uploadCardPending(entry); });
   actions.appendChild(uploadBtn);
 
-  const statusSpan = document.createElement("span");
-  statusSpan.className = "card-status idle";
-  statusSpan.id = `status-${entry.slug}`;
-  statusSpan.textContent = "idle";
-  actions.appendChild(statusSpan);
-
-  // debug: show first panel's repo path on hover
-  const pathHint = document.createElement("span");
-  pathHint.style.cssText = "font-family:var(--font-mono);font-size:9px;color:var(--plinth-dim);opacity:0.5;margin-left:4px;word-break:break-all;display:none";
+  const pathHint = document.createElement("div");
+  pathHint.className = "path-hint";
   pathHint.id = `path-${entry.slug}`;
   actions.appendChild(pathHint);
 
-  card.appendChild(actions);
-  return card;
+  inner.appendChild(panelGrid);
+  inner.appendChild(actions);
+  body.appendChild(inner);
+  row.appendChild(body);
+
+  return row;
 }
 
 // ─────────────────────────────────────────────
@@ -897,27 +1024,26 @@ function handleFileSelect(entry, panelIndex, originalSrc, fileInput, slotEl, img
 
   const previewUrl = URL.createObjectURL(file);
   imgEl.src = previewUrl;
+  imgEl.removeAttribute("data-src");
 
-  // Derive the repo path from the original src (strips leading ./ or /)
   const repoPath = originalSrc.replace(/^\.?\//, "");
-
   const slotKey = `${entry.slug}-${panelIndex}`;
   pendingUploads.set(slotKey, { entry, panelIndex, repoPath, file, previewUrl });
 
-  // show path hint on card
   const pathHint = document.getElementById(`path-${entry.slug}`);
-  if (pathHint) { pathHint.textContent = repoPath; pathHint.style.display = "inline"; }
+  if (pathHint) { pathHint.textContent = repoPath; pathHint.style.display = "block"; }
 
   slotEl.classList.add("pending");
-  const label = slotEl.querySelector(".panel-slot__label");
-  label.textContent = "PENDING";
+  slotEl.querySelector(".panel-slot__label").textContent = "PENDING";
 
-  // enable upload btn on card
+  const row = document.getElementById(`artistsList`).querySelector(`[data-slug="${entry.slug}"]`);
+  if (row) row.classList.add("has-pending");
+
   const cardUploadBtn = document.getElementById(`upload-${entry.slug}`);
   if (cardUploadBtn) cardUploadBtn.disabled = false;
 
   const statusEl = document.getElementById(`status-${entry.slug}`);
-  if (statusEl) { statusEl.className = "card-status ready"; statusEl.textContent = "pending"; }
+  if (statusEl) { statusEl.className = "artist-row__status ready"; statusEl.textContent = "pending"; }
 
   document.getElementById("uploadAllBtn").style.display = "inline-block";
   document.getElementById("uploadAllBtn").disabled = false;
@@ -929,9 +1055,8 @@ function handleFileSelect(entry, panelIndex, originalSrc, fileInput, slotEl, img
 // COMMIT MODAL
 // ─────────────────────────────────────────────
 let pendingCommitResolve = null;
-
 function openCommitModal(fileCount, defaultMsg) {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     pendingCommitResolve = resolve;
     document.getElementById("commitFileCount").textContent = fileCount;
     document.getElementById("commitBranchLabel").textContent = ghConfig.branch || "main";
@@ -939,12 +1064,10 @@ function openCommitModal(fileCount, defaultMsg) {
     document.getElementById("commitModal").classList.remove("hidden");
   });
 }
-
 document.getElementById("cancelCommitBtn").addEventListener("click", () => {
   document.getElementById("commitModal").classList.add("hidden");
   if (pendingCommitResolve) { pendingCommitResolve(null); pendingCommitResolve = null; }
 });
-
 document.getElementById("confirmCommitBtn").addEventListener("click", () => {
   const msg = document.getElementById("commitMsg").value.trim() || "update: replace comic panel(s)";
   document.getElementById("commitModal").classList.add("hidden");
@@ -959,7 +1082,6 @@ async function uploadFiles(uploads) {
     toast("Configure GitHub credentials first", "err");
     return;
   }
-
   const uploadList = [...uploads.values()];
   const artistNames = [...new Set(uploadList.map(u => u.entry.artist))].join(", ");
   const defaultMsg = uploadList.length === 1
@@ -967,39 +1089,30 @@ async function uploadFiles(uploads) {
     : `update: replace ${uploadList.length} panels (${artistNames})`;
 
   const commitMessage = await openCommitModal(uploadList.length, defaultMsg);
-  if (!commitMessage) return; // cancelled
+  if (!commitMessage) return;
 
   let successCount = 0;
-
   for (const [slotKey, upload] of uploads) {
     const { entry, panelIndex, repoPath, file } = upload;
     const slotEl = document.getElementById(`slot-${entry.slug}-${panelIndex}`);
     const statusEl = document.getElementById(`status-${entry.slug}`);
 
     if (slotEl) { slotEl.classList.remove("pending"); slotEl.classList.add("uploading"); }
-    if (statusEl) { statusEl.className = "card-status ready"; statusEl.textContent = "uploading…"; }
+    if (statusEl) { statusEl.className = "artist-row__status uploading"; statusEl.textContent = "uploading…"; }
 
-    console.log(`[admin] uploading: ${repoPath}`);
-
-    // Step 1: get existing file SHA (required by GitHub to update an existing file)
     let sha;
     try {
       const existing = await ghGet(repoPath);
       sha = existing.sha;
-      console.log(`[admin] got SHA for ${repoPath}: ${sha}`);
     } catch (shaErr) {
-      // 404 = new file, that's fine. Anything else is a real problem.
       if (!shaErr.message.includes("404") && !shaErr.message.includes("Not Found")) {
-        console.error(`[admin] SHA fetch failed for ${repoPath}:`, shaErr);
         if (slotEl) { slotEl.classList.remove("uploading"); slotEl.classList.add("error"); }
-        if (statusEl) { statusEl.className = "card-status error"; statusEl.textContent = "error"; }
+        if (statusEl) { statusEl.className = "artist-row__status error"; statusEl.textContent = "error"; }
         toast(`SHA fetch failed for ${entry.artist} P${panelIndex+1}: ${shaErr.message}`, "err");
         continue;
       }
-      console.log(`[admin] ${repoPath} is a new file (no existing SHA)`);
     }
 
-    // Step 2: convert file to base64 and push
     try {
       const content64 = await fileToBase64(file);
       await ghPut(repoPath, content64, commitMessage, sha);
@@ -1009,15 +1122,17 @@ async function uploadFiles(uploads) {
         slotEl.classList.add("done");
         slotEl.querySelector(".panel-slot__label").textContent = `P${panelIndex+1}`;
       }
-      if (statusEl) { statusEl.className = "card-status ready"; statusEl.textContent = "uploaded ✓"; }
+      if (statusEl) { statusEl.className = "artist-row__status ready"; statusEl.textContent = "uploaded ✓"; }
       pendingUploads.delete(slotKey);
       successCount++;
-      console.log(`[admin] ✓ pushed ${repoPath}`);
+
+      // clear pending state on row if no more pending for this artist
+      const rowEl = document.querySelector(`[data-slug="${entry.slug}"]`);
+      const stillPending = [...pendingUploads.keys()].some(k => k.startsWith(entry.slug + "-"));
+      if (rowEl && !stillPending) rowEl.classList.remove("has-pending");
     } catch (putErr) {
-      console.error(`[admin] PUT failed for ${repoPath}:`, putErr);
       if (slotEl) { slotEl.classList.remove("uploading"); slotEl.classList.add("error"); }
-      if (statusEl) { statusEl.className = "card-status error"; statusEl.textContent = "error"; }
-      // Show a persistent error (longer toast) so it doesn't vanish before you see it
+      if (statusEl) { statusEl.className = "artist-row__status error"; statusEl.textContent = "error"; }
       showPersistentError(`Upload failed for ${entry.artist} P${panelIndex+1}: ${putErr.message}`);
     }
   }
@@ -1027,9 +1142,9 @@ async function uploadFiles(uploads) {
     document.getElementById("uploadAllBtn").style.display = "none";
   }
 
-  // refresh card button states
-  document.querySelectorAll(".artist-card").forEach(card => {
-    const slug = card.dataset.slug;
+  // Refresh card button states
+  document.querySelectorAll(".artist-row").forEach(row => {
+    const slug = row.dataset.slug;
     const hasPending = [...pendingUploads.keys()].some(k => k.startsWith(slug + "-"));
     const btn = document.getElementById(`upload-${slug}`);
     if (btn) btn.disabled = !hasPending;
@@ -1047,7 +1162,6 @@ function showPersistentError(msg) {
   el.textContent = msg;
   el.addEventListener("click", () => el.remove());
   tray.appendChild(el);
-  // stays until clicked, also auto-removes after 12s
   setTimeout(() => el.remove(), 12000);
 }
 
@@ -1065,30 +1179,37 @@ document.getElementById("uploadAllBtn").addEventListener("click", async () => {
 });
 
 // ─────────────────────────────────────────────
+// EXPAND / COLLAPSE ALL
+// ─────────────────────────────────────────────
+document.getElementById("expandAllBtn").addEventListener("click", () => {
+  document.querySelectorAll(".artist-row").forEach(row => {
+    if (!row.classList.contains("is-open")) {
+      row.classList.add("is-open");
+      row.querySelector(".artist-row__header").setAttribute("aria-expanded", "true");
+      loadRowImages(row);
+    }
+  });
+});
+document.getElementById("collapseAllBtn").addEventListener("click", () => {
+  document.querySelectorAll(".artist-row").forEach(row => {
+    row.classList.remove("is-open");
+    row.querySelector(".artist-row__header").setAttribute("aria-expanded", "false");
+  });
+});
+
+// ─────────────────────────────────────────────
 // SEARCH
 // ─────────────────────────────────────────────
-document.getElementById("searchInput").addEventListener("input", (e) => {
+document.getElementById("searchInput").addEventListener("input", e => {
   const q = e.target.value.toLowerCase().trim();
-  if (!q) {
-    renderGrid(allEntries);
-    return;
-  }
-  const filtered = allEntries.filter(entry => entry.artist.toLowerCase().includes(q));
-  renderGrid(filtered);
+  renderList(q ? allEntries.filter(entry => entry.artist.toLowerCase().includes(q)) : allEntries);
 });
 
 // ─────────────────────────────────────────────
 // INIT
 // ─────────────────────────────────────────────
 loadSavedConfig();
-
-// Auto-load if config already present from session
-if (ghConfig.owner && ghConfig.repo && ghConfig.token) {
-  initLoad();
-} else {
-  // Still load posts (works without GH config)
-  initLoad();
-}
+initLoad();
 </script>
 </body>
 </html>
