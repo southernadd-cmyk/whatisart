@@ -878,6 +878,12 @@ function buildCard(entry) {
   statusSpan.textContent = "idle";
   actions.appendChild(statusSpan);
 
+  // debug: show first panel's repo path on hover
+  const pathHint = document.createElement("span");
+  pathHint.style.cssText = "font-family:var(--font-mono);font-size:9px;color:var(--plinth-dim);opacity:0.5;margin-left:4px;word-break:break-all;display:none";
+  pathHint.id = `path-${entry.slug}`;
+  actions.appendChild(pathHint);
+
   card.appendChild(actions);
   return card;
 }
@@ -898,6 +904,10 @@ function handleFileSelect(entry, panelIndex, originalSrc, fileInput, slotEl, img
   const slotKey = `${entry.slug}-${panelIndex}`;
   pendingUploads.set(slotKey, { entry, panelIndex, repoPath, file, previewUrl });
 
+  // show path hint on card
+  const pathHint = document.getElementById(`path-${entry.slug}`);
+  if (pathHint) { pathHint.textContent = repoPath; pathHint.style.display = "inline"; }
+
   slotEl.classList.add("pending");
   const label = slotEl.querySelector(".panel-slot__label");
   label.textContent = "PENDING";
@@ -912,7 +922,7 @@ function handleFileSelect(entry, panelIndex, originalSrc, fileInput, slotEl, img
   document.getElementById("uploadAllBtn").style.display = "inline-block";
   document.getElementById("uploadAllBtn").disabled = false;
 
-  toast(`Panel ${panelIndex+1} staged for ${entry.artist}`, "inf");
+  toast(`Staged P${panelIndex+1} for ${entry.artist} → ${repoPath}`, "inf");
 }
 
 // ─────────────────────────────────────────────
@@ -960,7 +970,6 @@ async function uploadFiles(uploads) {
   if (!commitMessage) return; // cancelled
 
   let successCount = 0;
-  let failCount = 0;
 
   for (const [slotKey, upload] of uploads) {
     const { entry, panelIndex, repoPath, file } = upload;
@@ -970,33 +979,46 @@ async function uploadFiles(uploads) {
     if (slotEl) { slotEl.classList.remove("pending"); slotEl.classList.add("uploading"); }
     if (statusEl) { statusEl.className = "card-status ready"; statusEl.textContent = "uploading…"; }
 
-    try {
-      // get existing SHA (needed for update)
-      let sha;
-      try {
-        const existing = await ghGet(repoPath);
-        sha = existing.sha;
-      } catch (e) {
-        // file might not exist yet — that's fine
-      }
+    console.log(`[admin] uploading: ${repoPath}`);
 
+    // Step 1: get existing file SHA (required by GitHub to update an existing file)
+    let sha;
+    try {
+      const existing = await ghGet(repoPath);
+      sha = existing.sha;
+      console.log(`[admin] got SHA for ${repoPath}: ${sha}`);
+    } catch (shaErr) {
+      // 404 = new file, that's fine. Anything else is a real problem.
+      if (!shaErr.message.includes("404") && !shaErr.message.includes("Not Found")) {
+        console.error(`[admin] SHA fetch failed for ${repoPath}:`, shaErr);
+        if (slotEl) { slotEl.classList.remove("uploading"); slotEl.classList.add("error"); }
+        if (statusEl) { statusEl.className = "card-status error"; statusEl.textContent = "error"; }
+        toast(`SHA fetch failed for ${entry.artist} P${panelIndex+1}: ${shaErr.message}`, "err");
+        continue;
+      }
+      console.log(`[admin] ${repoPath} is a new file (no existing SHA)`);
+    }
+
+    // Step 2: convert file to base64 and push
+    try {
       const content64 = await fileToBase64(file);
       await ghPut(repoPath, content64, commitMessage, sha);
 
       if (slotEl) {
         slotEl.classList.remove("uploading");
         slotEl.classList.add("done");
-        const label = slotEl.querySelector(".panel-slot__label");
-        label.textContent = `P${panelIndex+1}`;
+        slotEl.querySelector(".panel-slot__label").textContent = `P${panelIndex+1}`;
       }
       if (statusEl) { statusEl.className = "card-status ready"; statusEl.textContent = "uploaded ✓"; }
       pendingUploads.delete(slotKey);
       successCount++;
-    } catch (e) {
+      console.log(`[admin] ✓ pushed ${repoPath}`);
+    } catch (putErr) {
+      console.error(`[admin] PUT failed for ${repoPath}:`, putErr);
       if (slotEl) { slotEl.classList.remove("uploading"); slotEl.classList.add("error"); }
       if (statusEl) { statusEl.className = "card-status error"; statusEl.textContent = "error"; }
-      toast(`Failed ${entry.artist} P${panelIndex+1}: ${e.message}`, "err");
-      failCount++;
+      // Show a persistent error (longer toast) so it doesn't vanish before you see it
+      showPersistentError(`Upload failed for ${entry.artist} P${panelIndex+1}: ${putErr.message}`);
     }
   }
 
@@ -1012,6 +1034,21 @@ async function uploadFiles(uploads) {
     const btn = document.getElementById(`upload-${slug}`);
     if (btn) btn.disabled = !hasPending;
   });
+}
+
+function showPersistentError(msg) {
+  const tray = document.getElementById("toastTray");
+  const el = document.createElement("div");
+  el.className = "toast err";
+  el.style.animation = "slideIn 0.2s ease";
+  el.style.maxWidth = "400px";
+  el.style.cursor = "pointer";
+  el.title = "Click to dismiss";
+  el.textContent = msg;
+  el.addEventListener("click", () => el.remove());
+  tray.appendChild(el);
+  // stays until clicked, also auto-removes after 12s
+  setTimeout(() => el.remove(), 12000);
 }
 
 async function uploadCardPending(entry) {
