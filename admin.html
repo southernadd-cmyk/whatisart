@@ -1,0 +1,1057 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin — What Is Art Comic</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,600;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --void: #07070a;
+      --void-mid: #0e0f14;
+      --void-raised: #13141a;
+      --plinth: #e8e4dc;
+      --plinth-warm: #f2ebe0;
+      --plinth-dim: rgba(232,228,220,0.55);
+      --ink: #0a0908;
+      --signal: #00ffc8;
+      --signal-dim: rgba(0,255,200,0.18);
+      --signal-glow: rgba(0,255,200,0.08);
+      --heat: #ff3b5c;
+      --heat-soft: rgba(255,59,92,0.18);
+      --amber: #ffb830;
+      --amber-soft: rgba(255,184,48,0.15);
+      --wire: #1a1c22;
+      --border: rgba(232,228,220,0.1);
+      --border-signal: rgba(0,255,200,0.22);
+      --font-display: "Syne", system-ui, sans-serif;
+      --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      font-family: var(--font-display);
+      color: var(--plinth);
+      background: var(--void);
+      min-height: 100vh;
+      line-height: 1.5;
+      overflow-x: hidden;
+    }
+
+    /* ── GRAIN OVERLAY ── */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 100;
+      opacity: 0.03;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+      background-size: 200px 200px;
+    }
+
+    /* ── LAYOUT ── */
+    .shell {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 24px 80px;
+    }
+
+    /* ── HEADER ── */
+    .admin-header {
+      border-bottom: 1px solid var(--border-signal);
+      padding: 20px 0 18px;
+      display: flex;
+      align-items: baseline;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-bottom: 32px;
+    }
+
+    .admin-header h1 {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--signal);
+      margin: 0;
+    }
+
+    .admin-header .back-link {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--plinth-dim);
+      text-decoration: none;
+      letter-spacing: 0.08em;
+      margin-left: auto;
+      transition: color 0.15s;
+    }
+    .admin-header .back-link:hover { color: var(--plinth); }
+
+    .admin-header .header-status {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--plinth-dim);
+      letter-spacing: 0.06em;
+    }
+
+    /* ── GITHUB CONFIG PANEL ── */
+    .config-panel {
+      background: var(--void-raised);
+      border: 1px solid var(--border-signal);
+      border-radius: 4px;
+      padding: 20px 24px;
+      margin-bottom: 36px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px 20px;
+      align-items: end;
+    }
+
+    .config-panel h2 {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--signal);
+      margin: 0 0 16px;
+      grid-column: 1 / -1;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .field label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--plinth-dim);
+    }
+
+    .field input {
+      background: var(--void);
+      border: 1px solid var(--border);
+      color: var(--plinth);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      padding: 8px 10px;
+      border-radius: 3px;
+      outline: none;
+      transition: border-color 0.15s;
+      width: 100%;
+    }
+    .field input:focus { border-color: var(--signal); }
+    .field input::placeholder { color: rgba(232,228,220,0.2); }
+
+    .config-actions {
+      grid-column: 1 / -1;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 9px 18px;
+      border: 1px solid currentColor;
+      border-radius: 3px;
+      cursor: pointer;
+      background: transparent;
+      transition: background 0.15s, color 0.15s;
+    }
+    .btn-signal { color: var(--signal); }
+    .btn-signal:hover { background: var(--signal); color: var(--void); }
+    .btn-heat { color: var(--heat); }
+    .btn-heat:hover { background: var(--heat); color: #fff; }
+    .btn-amber { color: var(--amber); }
+    .btn-amber:hover { background: var(--amber); color: var(--void); }
+    .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+    .config-msg {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      padding: 6px 10px;
+      border-radius: 3px;
+    }
+    .config-msg.ok { color: var(--signal); background: var(--signal-glow); }
+    .config-msg.err { color: var(--heat); background: var(--heat-soft); }
+
+    /* ── SEARCH / FILTER ── */
+    .toolbar {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .search-input {
+      background: var(--void-raised);
+      border: 1px solid var(--border);
+      color: var(--plinth);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      padding: 8px 12px;
+      border-radius: 3px;
+      outline: none;
+      width: 260px;
+      transition: border-color 0.15s;
+    }
+    .search-input:focus { border-color: var(--signal); }
+    .search-input::placeholder { color: rgba(232,228,220,0.2); }
+
+    .count-badge {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--plinth-dim);
+      margin-left: auto;
+    }
+
+    /* ── ARTISTS GRID ── */
+    .artists-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 2px;
+    }
+
+    /* ── ARTIST CARD ── */
+    .artist-card {
+      background: var(--void-raised);
+      border: 1px solid var(--border);
+      padding: 16px;
+      transition: border-color 0.15s;
+    }
+    .artist-card:hover { border-color: var(--border-signal); }
+
+    .artist-card__name {
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--plinth-warm);
+      margin: 0 0 12px;
+      letter-spacing: 0.02em;
+    }
+
+    .panel-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 4px;
+      margin-bottom: 12px;
+    }
+
+    .panel-slot {
+      position: relative;
+      aspect-ratio: 1;
+      background: var(--void);
+      border: 1px solid var(--border);
+      overflow: hidden;
+      border-radius: 2px;
+    }
+
+    .panel-slot img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .panel-slot__label {
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      font-family: var(--font-mono);
+      font-size: 9px;
+      background: rgba(7,7,10,0.85);
+      color: var(--signal);
+      padding: 1px 4px;
+      border-radius: 2px;
+      pointer-events: none;
+    }
+
+    /* Upload overlay */
+    .panel-slot__upload {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: rgba(7,7,10,0.75);
+      opacity: 0;
+      transition: opacity 0.15s;
+      cursor: pointer;
+    }
+    .panel-slot:hover .panel-slot__upload { opacity: 1; }
+
+    .panel-slot__upload-icon {
+      font-size: 18px;
+      margin-bottom: 3px;
+      line-height: 1;
+    }
+    .panel-slot__upload-text {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: var(--signal);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      text-align: center;
+    }
+
+    .panel-slot input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* pending / uploading states */
+    .panel-slot.pending { border-color: var(--amber); }
+    .panel-slot.pending .panel-slot__label { background: var(--amber); color: var(--void); }
+    .panel-slot.uploading { border-color: var(--signal); }
+    .panel-slot.uploading .panel-slot__label { background: var(--signal); color: var(--void); }
+    .panel-slot.done { border-color: var(--signal); }
+    .panel-slot.error { border-color: var(--heat); }
+    .panel-slot.error .panel-slot__label { background: var(--heat); color: #fff; }
+
+    /* upload progress ring */
+    .panel-slot__spinner {
+      display: none;
+      position: absolute;
+      inset: 0;
+      align-items: center;
+      justify-content: center;
+      background: rgba(7,7,10,0.8);
+    }
+    .panel-slot.uploading .panel-slot__spinner { display: flex; }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner-ring {
+      width: 20px; height: 20px;
+      border: 2px solid var(--signal-dim);
+      border-top-color: var(--signal);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    /* card actions */
+    .card-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .card-status {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      margin-left: auto;
+      padding: 3px 7px;
+      border-radius: 2px;
+    }
+    .card-status.ready { color: var(--signal); }
+    .card-status.idle { color: var(--plinth-dim); }
+    .card-status.error { color: var(--heat); }
+
+    /* ── LOADING / ERROR STATE ── */
+    .state-block {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--plinth-dim);
+      padding: 60px 0;
+      text-align: center;
+    }
+    .state-block .dot-pulse::after {
+      content: "";
+      animation: dots 1.2s steps(4, end) infinite;
+    }
+    @keyframes dots {
+      0%   { content: ""; }
+      25%  { content: "."; }
+      50%  { content: ".."; }
+      75%  { content: "..."; }
+      100% { content: ""; }
+    }
+
+    /* ── TOAST ── */
+    .toast-tray {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 200;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: none;
+    }
+    .toast {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      padding: 10px 14px;
+      border-radius: 3px;
+      border-left: 3px solid;
+      background: var(--void-raised);
+      animation: slideIn 0.2s ease, fadeOut 0.3s ease 3.2s forwards;
+      pointer-events: none;
+      max-width: 320px;
+    }
+    .toast.ok  { border-color: var(--signal); color: var(--signal); }
+    .toast.err { border-color: var(--heat);   color: var(--heat);   }
+    .toast.inf { border-color: var(--amber);  color: var(--amber);  }
+
+    @keyframes slideIn  { from { transform: translateX(16px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    @keyframes fadeOut  { to { opacity: 0; transform: translateY(4px); } }
+
+    /* ── COMMIT MESSAGE MODAL ── */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(7,7,10,0.88);
+      z-index: 300;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .modal-backdrop.hidden { display: none; }
+    .modal {
+      background: var(--void-raised);
+      border: 1px solid var(--border-signal);
+      border-radius: 4px;
+      padding: 28px;
+      width: 100%;
+      max-width: 480px;
+    }
+    .modal h3 {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--signal);
+      margin: 0 0 18px;
+    }
+    .modal textarea {
+      width: 100%;
+      background: var(--void);
+      border: 1px solid var(--border);
+      color: var(--plinth);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      padding: 10px;
+      border-radius: 3px;
+      resize: vertical;
+      outline: none;
+      min-height: 72px;
+      transition: border-color 0.15s;
+    }
+    .modal textarea:focus { border-color: var(--signal); }
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+      justify-content: flex-end;
+    }
+    .modal-note {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--plinth-dim);
+      margin-top: 10px;
+      line-height: 1.5;
+    }
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--void); }
+    ::-webkit-scrollbar-thumb { background: var(--wire); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--border-signal); }
+  </style>
+</head>
+<body>
+
+<div class="shell">
+  <!-- HEADER -->
+  <header class="admin-header">
+    <h1>⬡ Admin Console</h1>
+    <span class="header-status" id="headerStatus">Load posts to begin</span>
+    <a class="back-link" href="./index.html">← Index</a>
+  </header>
+
+  <!-- GITHUB CONFIG -->
+  <section class="config-panel" id="configPanel">
+    <h2>GitHub Configuration</h2>
+    <div class="field">
+      <label>Owner / Org</label>
+      <input type="text" id="ghOwner" placeholder="your-username" autocomplete="off" spellcheck="false" />
+    </div>
+    <div class="field">
+      <label>Repository</label>
+      <input type="text" id="ghRepo" placeholder="whatisart" autocomplete="off" spellcheck="false" />
+    </div>
+    <div class="field">
+      <label>Branch</label>
+      <input type="text" id="ghBranch" placeholder="main" autocomplete="off" spellcheck="false" />
+    </div>
+    <div class="field">
+      <label>Personal Access Token</label>
+      <input type="password" id="ghToken" placeholder="ghp_••••••••••••••••••••" autocomplete="off" />
+    </div>
+    <div class="config-actions">
+      <button class="btn btn-signal" id="saveConfigBtn">Save &amp; Load</button>
+      <button class="btn btn-heat" id="clearConfigBtn">Clear</button>
+      <span class="config-msg" id="configMsg" style="display:none"></span>
+    </div>
+  </section>
+
+  <!-- SEARCH TOOLBAR -->
+  <div class="toolbar">
+    <input class="search-input" type="text" id="searchInput" placeholder="Filter artists…" />
+    <span class="count-badge" id="countBadge"></span>
+    <button class="btn btn-amber" id="uploadAllBtn" disabled style="display:none">Upload All Pending</button>
+  </div>
+
+  <!-- ARTISTS GRID -->
+  <div id="loadingState" class="state-block"><span class="dot-pulse">Loading posts</span></div>
+  <div id="errorState"   class="state-block" style="display:none"></div>
+  <div class="artists-grid" id="artistsGrid" style="display:none"></div>
+</div>
+
+<!-- TOAST TRAY -->
+<div class="toast-tray" id="toastTray"></div>
+
+<!-- COMMIT MESSAGE MODAL -->
+<div class="modal-backdrop hidden" id="commitModal">
+  <div class="modal">
+    <h3>Commit Message</h3>
+    <textarea id="commitMsg" rows="3" placeholder="update: replace panel for [Artist Name]"></textarea>
+    <p class="modal-note">Uploading <span id="commitFileCount">1</span> file(s) to <code id="commitBranchLabel"></code>.</p>
+    <div class="modal-actions">
+      <button class="btn btn-heat"   id="cancelCommitBtn">Cancel</button>
+      <button class="btn btn-signal" id="confirmCommitBtn">Push to GitHub</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─────────────────────────────────────────────
+// COPY OF slugify / parsing helpers from app.js
+// ─────────────────────────────────────────────
+function normalizeCompare(text) {
+  return (text || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+function slugify(text) {
+  return normalizeCompare(text).replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+}
+function cleanupLine(line) { return line.replace(/\u00a0/g, " ").trim(); }
+function isMetaLine(line) {
+  const l = line.toLowerCase();
+  return !line || line === "." || l === "#whatisart" || line.startsWith("@") || line.startsWith("#");
+}
+function hashtagToDisplay(text) {
+  return text.replace(/^#+/, "").replace(/([a-z])([A-Z])/g,"$1 $2")
+    .replace(/([A-Za-z])(\d)/g,"$1 $2").replace(/(\d)([A-Za-z])/g,"$1 $2")
+    .replace(/_/g," ").trim();
+}
+function inferArtist(lines) {
+  const clean = lines.map(cleanupLine).filter(Boolean);
+  const captionName = clean.find(l => !isMetaLine(l));
+  if (captionName) return captionName;
+  const fromTag = clean.find(l => l.startsWith("#") && l.toLowerCase() !== "#whatisart");
+  if (fromTag) return hashtagToDisplay(fromTag);
+  const fromHandle = clean.find(l => l.startsWith("@"));
+  if (fromHandle) return fromHandle.replace(/^@+/, "").replace(/[._-]+/g, " ");
+  return clean[0] || "unknown-artist";
+}
+const COMIC_ORDER = ["Stephanie Dinkins","Eric Cantona","Albrecht Dürer","Tyler the Creator","Slavoj Žižek","Yoko Ono","Michelangelo","Niyi Olagunju","Vivienne Westwood","Stanley Kubrick","Claes Oldenburg","Judy Chicago","Muhammad Ali","Sofia Isella","Gerhard Richter","Gwen John","Enheduanna","Sherrie Levine","Plato","Randy Mario Poffo","Grayson Perry","George Bernard Shaw","Friedrich Nietzsche","Bob Ross","David Choe","Frida Kahlo","Alberto Giacometti","Kurt Vonnegut Jr.","Rick Rubin","Jim Dine","James Baldwin","Henry Ward Beecher","Ansel Adams","Kara Walker","David Bowie","Wassily Kandinsky","Kurt Cobain","Henri Matisse","René Magritte","David Hockney","David Salle","Akira Toriyama","King Robbo","Keith Haring","Henry Ossawa Tanner","Hito Steyerl","J. M. W. Turner","Francis Bacon","Joseph Beuys","Leonardo da Vinci","William Blake","Molière","Ai Weiwei","Amoako Boafo","David Szauder","Jeff Koons","Bob Dylan","Odilon Redon","Rafael Lozano-Hemmer","Tino Sehgal","Leo Tolstoy","Fiona Rae","Linder","Joseph Kosuth","Artemisia Gentileschi","Christine de Pizan","M. C. Escher","Damien Hirst","Lawrence Weiner","Alan Moore","James Abbott Whistler","Martin Kippenberger","Blek le Rat","Hunter S. Thompson","Cindy Sherman","Erykah Badu","MF DOOM","Edgar Degas","Georgia O'Keeffe","Veronica Ryan","Sol LeWitt","Salvador Dalí","Donald Judd","Paul Cézanne","Tracey Emin","Vincent van Gogh","Pablo Picasso","Jean-Michel Basquiat","Banksy","Jackson Pollock","Barbara Kruger","Andy Warhol","Marcel Duchamp"];
+function resolveCanonicalArtist(captionLines, fallbackName = "unknown-artist") {
+  const caption = normalizeCompare(captionLines.join(" "));
+  let bestName = fallbackName, bestScore = -1;
+  for (const candidate of COMIC_ORDER) {
+    const candidateNorm = normalizeCompare(candidate);
+    const tokens = candidateNorm.split(" ").filter(t => t.length > 2);
+    if (!tokens.length) continue;
+    let score = 0;
+    if (caption.includes(candidateNorm)) score += 10;
+    score += tokens.filter(t => caption.includes(t)).length;
+    const finalToken = tokens[tokens.length - 1];
+    if (finalToken && caption.includes(finalToken)) score += 2;
+    if (score > bestScore) { bestScore = score; bestName = candidate; }
+  }
+  return bestScore < 2 ? fallbackName : bestName;
+}
+function extractHaiku(lines, artist) {
+  const filtered = lines.map(cleanupLine).filter(Boolean)
+    .filter(l => !l.startsWith("#")).filter(l => !l.startsWith("@")).filter(l => l !== ".");
+  const artistLower = artist.toLowerCase().replace(/[._-]/g, "");
+  const hasArtistMention = filtered.some(l => l.toLowerCase().replace(/\s+/g,"").includes(artistLower));
+  if (!hasArtistMention) filtered.unshift(artist);
+  return filtered.join("\n");
+}
+function parsePosts(html) {
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  const cards = Array.from(doc.querySelectorAll("main .uiBoxWhite.noborder"));
+  return cards.map(card => {
+    const captionText = card.querySelector("h2")?.textContent || "";
+    const captionLines = captionText.split("\n").map(cleanupLine).filter(Boolean);
+    const imageUrls = Array.from(card.querySelectorAll('a[href*="media/posts/"] img')).map(img => img.getAttribute("src"));
+    const date = card.querySelector("._a6-o")?.textContent?.trim() || "";
+    if (imageUrls.length < 4) return null;
+    const inferred = inferArtist(captionLines);
+    const artist = resolveCanonicalArtist(captionLines, inferred);
+    return { artist, slug: slugify(artist), captionLines, haiku: extractHaiku(captionLines, ""), panels: imageUrls.slice(0, 4), date };
+  }).filter(Boolean);
+}
+function buildArtistEntries(posts) {
+  const buckets = new Map();
+  for (const post of posts) {
+    if (!buckets.has(post.slug)) buckets.set(post.slug, []);
+    buckets.get(post.slug).push(post);
+  }
+  const entries = Array.from(buckets.values()).map(list => list[0]);
+  const bySlug = new Map(entries.map(e => [e.slug, e]));
+  const ordered = [];
+  for (const artistName of COMIC_ORDER) {
+    const slug = slugify(artistName);
+    const matched = bySlug.get(slug);
+    if (matched) { ordered.push(matched); bySlug.delete(slug); }
+  }
+  const unmatched = Array.from(bySlug.values()).sort((a,b) => a.artist.localeCompare(b.artist,undefined,{sensitivity:"base"}));
+  return [...ordered, ...unmatched];
+}
+
+// ─────────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────────
+let ghConfig = { owner:"", repo:"", branch:"main", token:"" };
+let pendingUploads = new Map(); // slotKey -> { artistSlug, panelIndex, repoPath, file, previewUrl }
+let allEntries = [];
+let filteredEntries = [];
+
+// ─────────────────────────────────────────────
+// STORAGE (sessionStorage — token never persisted long-term)
+// ─────────────────────────────────────────────
+const CONFIG_KEY = "admin_gh_config";
+function loadSavedConfig() {
+  try {
+    const saved = sessionStorage.getItem(CONFIG_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      ghConfig = { ...ghConfig, ...parsed };
+      document.getElementById("ghOwner").value  = ghConfig.owner || "";
+      document.getElementById("ghRepo").value   = ghConfig.repo  || "";
+      document.getElementById("ghBranch").value = ghConfig.branch|| "main";
+      document.getElementById("ghToken").value  = ghConfig.token || "";
+    }
+  } catch {}
+}
+function saveConfig() {
+  ghConfig.owner  = document.getElementById("ghOwner").value.trim();
+  ghConfig.repo   = document.getElementById("ghRepo").value.trim();
+  ghConfig.branch = document.getElementById("ghBranch").value.trim() || "main";
+  ghConfig.token  = document.getElementById("ghToken").value.trim();
+  sessionStorage.setItem(CONFIG_KEY, JSON.stringify(ghConfig));
+}
+
+// ─────────────────────────────────────────────
+// TOAST
+// ─────────────────────────────────────────────
+function toast(msg, type = "ok") {
+  const tray = document.getElementById("toastTray");
+  const el = document.createElement("div");
+  el.className = `toast ${type}`;
+  el.textContent = msg;
+  tray.appendChild(el);
+  setTimeout(() => el.remove(), 3700);
+}
+
+// ─────────────────────────────────────────────
+// GITHUB API
+// ─────────────────────────────────────────────
+async function ghGet(path) {
+  const { owner, repo, branch, token } = ghConfig;
+  const r = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${branch}`, {
+    headers: { Authorization: `Bearer ${token}`, Accept: "application/vnd.github+json" }
+  });
+  if (!r.ok) throw new Error(`GitHub ${r.status}: ${(await r.json()).message}`);
+  return r.json();
+}
+
+async function ghPut(path, content64, message, sha) {
+  const { owner, repo, branch, token } = ghConfig;
+  const body = { message, content: content64, branch };
+  if (sha) body.sha = sha;
+  const r = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, {
+    method: "PUT",
+    headers: { Authorization: `Bearer ${token}`, Accept: "application/vnd.github+json", "Content-Type": "application/json" },
+    body: JSON.stringify(body)
+  });
+  if (!r.ok) throw new Error(`GitHub ${r.status}: ${(await r.json()).message}`);
+  return r.json();
+}
+
+async function testGitHub() {
+  const { owner, repo, branch, token } = ghConfig;
+  if (!owner || !repo || !token) throw new Error("Fill in owner, repo, and token");
+  const r = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {
+    headers: { Authorization: `Bearer ${token}`, Accept: "application/vnd.github+json" }
+  });
+  if (!r.ok) throw new Error(`GitHub ${r.status}: ${(await r.json()).message}`);
+  return r.json();
+}
+
+async function fileToBase64(file) {
+  return new Promise((res, rej) => {
+    const reader = new FileReader();
+    reader.onload = () => res(reader.result.split(",")[1]);
+    reader.onerror = rej;
+    reader.readAsDataURL(file);
+  });
+}
+
+// ─────────────────────────────────────────────
+// CONFIG PANEL
+// ─────────────────────────────────────────────
+function showConfigMsg(text, type) {
+  const el = document.getElementById("configMsg");
+  el.textContent = text;
+  el.className = `config-msg ${type}`;
+  el.style.display = "inline-block";
+  setTimeout(() => { el.style.display = "none"; }, 4000);
+}
+
+document.getElementById("saveConfigBtn").addEventListener("click", async () => {
+  saveConfig();
+  const btn = document.getElementById("saveConfigBtn");
+  btn.disabled = true;
+  btn.textContent = "Connecting…";
+  try {
+    const repo = await testGitHub();
+    showConfigMsg(`✓ Connected: ${repo.full_name}`, "ok");
+    initLoad();
+  } catch (e) {
+    showConfigMsg(`✗ ${e.message}`, "err");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Save & Load";
+  }
+});
+
+document.getElementById("clearConfigBtn").addEventListener("click", () => {
+  sessionStorage.removeItem(CONFIG_KEY);
+  ["ghOwner","ghRepo","ghBranch","ghToken"].forEach(id => document.getElementById(id).value = "");
+  ghConfig = { owner:"", repo:"", branch:"main", token:"" };
+  showConfigMsg("Cleared", "ok");
+});
+
+// ─────────────────────────────────────────────
+// LOAD POSTS
+// ─────────────────────────────────────────────
+async function initLoad() {
+  document.getElementById("loadingState").style.display = "block";
+  document.getElementById("errorState").style.display   = "none";
+  document.getElementById("artistsGrid").style.display  = "none";
+
+  try {
+    const response = await fetch("./your_instagram_activity/media/posts_1.html");
+    if (!response.ok) throw new Error("Could not load posts_1.html — run this page from the project root.");
+    const html = await response.text();
+    const posts = parsePosts(html);
+    allEntries = buildArtistEntries(posts);
+    document.getElementById("headerStatus").textContent = `${allEntries.length} artists loaded`;
+    renderGrid(allEntries);
+  } catch (e) {
+    document.getElementById("loadingState").style.display = "none";
+    const errEl = document.getElementById("errorState");
+    errEl.textContent = `Error: ${e.message}`;
+    errEl.style.display = "block";
+  }
+}
+
+// ─────────────────────────────────────────────
+// RENDER
+// ─────────────────────────────────────────────
+function renderGrid(entries) {
+  filteredEntries = entries;
+  const grid = document.getElementById("artistsGrid");
+  document.getElementById("loadingState").style.display = "none";
+
+  document.getElementById("countBadge").textContent = `${entries.length} artists`;
+  document.getElementById("uploadAllBtn").style.display = pendingUploads.size > 0 ? "inline-block" : "none";
+
+  grid.innerHTML = "";
+  entries.forEach(entry => grid.appendChild(buildCard(entry)));
+  grid.style.display = "grid";
+}
+
+function buildCard(entry) {
+  const card = document.createElement("div");
+  card.className = "artist-card";
+  card.dataset.slug = entry.slug;
+
+  const title = document.createElement("div");
+  title.className = "artist-card__name";
+  title.textContent = entry.artist;
+  card.appendChild(title);
+
+  const panelGrid = document.createElement("div");
+  panelGrid.className = "panel-grid";
+
+  entry.panels.forEach((src, i) => {
+    const slot = document.createElement("div");
+    slot.className = "panel-slot";
+    slot.id = `slot-${entry.slug}-${i}`;
+
+    const label = document.createElement("div");
+    label.className = "panel-slot__label";
+    label.textContent = `P${i + 1}`;
+    slot.appendChild(label);
+
+    const img = document.createElement("img");
+    img.src = `./${src.replace(/^\.?\//, "")}`;
+    img.alt = `${entry.artist} panel ${i+1}`;
+    img.loading = "lazy";
+    slot.appendChild(img);
+
+    // upload overlay
+    const overlay = document.createElement("div");
+    overlay.className = "panel-slot__upload";
+    overlay.innerHTML = `<div class="panel-slot__upload-icon">↑</div><div class="panel-slot__upload-text">Replace</div>`;
+    slot.appendChild(overlay);
+
+    // file input
+    const fileInput = document.createElement("input");
+    fileInput.type = "file";
+    fileInput.accept = "image/*";
+    fileInput.title = `Replace panel ${i+1} for ${entry.artist}`;
+    fileInput.addEventListener("change", () => handleFileSelect(entry, i, src, fileInput, slot, img));
+    slot.appendChild(fileInput);
+
+    // spinner
+    const spinner = document.createElement("div");
+    spinner.className = "panel-slot__spinner";
+    spinner.innerHTML = `<div class="spinner-ring"></div>`;
+    slot.appendChild(spinner);
+
+    panelGrid.appendChild(slot);
+  });
+
+  card.appendChild(panelGrid);
+
+  // card actions
+  const actions = document.createElement("div");
+  actions.className = "card-actions";
+
+  const uploadBtn = document.createElement("button");
+  uploadBtn.className = "btn btn-amber";
+  uploadBtn.style.fontSize = "10px";
+  uploadBtn.style.padding = "6px 12px";
+  uploadBtn.textContent = "Upload Pending";
+  uploadBtn.disabled = true;
+  uploadBtn.id = `upload-${entry.slug}`;
+  uploadBtn.addEventListener("click", () => uploadCardPending(entry));
+  actions.appendChild(uploadBtn);
+
+  const statusSpan = document.createElement("span");
+  statusSpan.className = "card-status idle";
+  statusSpan.id = `status-${entry.slug}`;
+  statusSpan.textContent = "idle";
+  actions.appendChild(statusSpan);
+
+  card.appendChild(actions);
+  return card;
+}
+
+// ─────────────────────────────────────────────
+// FILE SELECT
+// ─────────────────────────────────────────────
+function handleFileSelect(entry, panelIndex, originalSrc, fileInput, slotEl, imgEl) {
+  const file = fileInput.files[0];
+  if (!file) return;
+
+  const previewUrl = URL.createObjectURL(file);
+  imgEl.src = previewUrl;
+
+  // Derive the repo path from the original src (strips leading ./ or /)
+  const repoPath = originalSrc.replace(/^\.?\//, "");
+
+  const slotKey = `${entry.slug}-${panelIndex}`;
+  pendingUploads.set(slotKey, { entry, panelIndex, repoPath, file, previewUrl });
+
+  slotEl.classList.add("pending");
+  const label = slotEl.querySelector(".panel-slot__label");
+  label.textContent = "PENDING";
+
+  // enable upload btn on card
+  const cardUploadBtn = document.getElementById(`upload-${entry.slug}`);
+  if (cardUploadBtn) cardUploadBtn.disabled = false;
+
+  const statusEl = document.getElementById(`status-${entry.slug}`);
+  if (statusEl) { statusEl.className = "card-status ready"; statusEl.textContent = "pending"; }
+
+  document.getElementById("uploadAllBtn").style.display = "inline-block";
+  document.getElementById("uploadAllBtn").disabled = false;
+
+  toast(`Panel ${panelIndex+1} staged for ${entry.artist}`, "inf");
+}
+
+// ─────────────────────────────────────────────
+// COMMIT MODAL
+// ─────────────────────────────────────────────
+let pendingCommitResolve = null;
+
+function openCommitModal(fileCount, defaultMsg) {
+  return new Promise((resolve) => {
+    pendingCommitResolve = resolve;
+    document.getElementById("commitFileCount").textContent = fileCount;
+    document.getElementById("commitBranchLabel").textContent = ghConfig.branch || "main";
+    document.getElementById("commitMsg").value = defaultMsg;
+    document.getElementById("commitModal").classList.remove("hidden");
+  });
+}
+
+document.getElementById("cancelCommitBtn").addEventListener("click", () => {
+  document.getElementById("commitModal").classList.add("hidden");
+  if (pendingCommitResolve) { pendingCommitResolve(null); pendingCommitResolve = null; }
+});
+
+document.getElementById("confirmCommitBtn").addEventListener("click", () => {
+  const msg = document.getElementById("commitMsg").value.trim() || "update: replace comic panel(s)";
+  document.getElementById("commitModal").classList.add("hidden");
+  if (pendingCommitResolve) { pendingCommitResolve(msg); pendingCommitResolve = null; }
+});
+
+// ─────────────────────────────────────────────
+// UPLOAD
+// ─────────────────────────────────────────────
+async function uploadFiles(uploads) {
+  if (!ghConfig.owner || !ghConfig.repo || !ghConfig.token) {
+    toast("Configure GitHub credentials first", "err");
+    return;
+  }
+
+  const uploadList = [...uploads.values()];
+  const artistNames = [...new Set(uploadList.map(u => u.entry.artist))].join(", ");
+  const defaultMsg = uploadList.length === 1
+    ? `update: replace panel ${uploadList[0].panelIndex+1} for ${uploadList[0].entry.artist}`
+    : `update: replace ${uploadList.length} panels (${artistNames})`;
+
+  const commitMessage = await openCommitModal(uploadList.length, defaultMsg);
+  if (!commitMessage) return; // cancelled
+
+  let successCount = 0;
+  let failCount = 0;
+
+  for (const [slotKey, upload] of uploads) {
+    const { entry, panelIndex, repoPath, file } = upload;
+    const slotEl = document.getElementById(`slot-${entry.slug}-${panelIndex}`);
+    const statusEl = document.getElementById(`status-${entry.slug}`);
+
+    if (slotEl) { slotEl.classList.remove("pending"); slotEl.classList.add("uploading"); }
+    if (statusEl) { statusEl.className = "card-status ready"; statusEl.textContent = "uploading…"; }
+
+    try {
+      // get existing SHA (needed for update)
+      let sha;
+      try {
+        const existing = await ghGet(repoPath);
+        sha = existing.sha;
+      } catch (e) {
+        // file might not exist yet — that's fine
+      }
+
+      const content64 = await fileToBase64(file);
+      await ghPut(repoPath, content64, commitMessage, sha);
+
+      if (slotEl) {
+        slotEl.classList.remove("uploading");
+        slotEl.classList.add("done");
+        const label = slotEl.querySelector(".panel-slot__label");
+        label.textContent = `P${panelIndex+1}`;
+      }
+      if (statusEl) { statusEl.className = "card-status ready"; statusEl.textContent = "uploaded ✓"; }
+      pendingUploads.delete(slotKey);
+      successCount++;
+    } catch (e) {
+      if (slotEl) { slotEl.classList.remove("uploading"); slotEl.classList.add("error"); }
+      if (statusEl) { statusEl.className = "card-status error"; statusEl.textContent = "error"; }
+      toast(`Failed ${entry.artist} P${panelIndex+1}: ${e.message}`, "err");
+      failCount++;
+    }
+  }
+
+  if (successCount > 0) toast(`✓ ${successCount} file(s) pushed to GitHub`, "ok");
+  if (pendingUploads.size === 0) {
+    document.getElementById("uploadAllBtn").style.display = "none";
+  }
+
+  // refresh card button states
+  document.querySelectorAll(".artist-card").forEach(card => {
+    const slug = card.dataset.slug;
+    const hasPending = [...pendingUploads.keys()].some(k => k.startsWith(slug + "-"));
+    const btn = document.getElementById(`upload-${slug}`);
+    if (btn) btn.disabled = !hasPending;
+  });
+}
+
+async function uploadCardPending(entry) {
+  const cardPending = new Map(
+    [...pendingUploads.entries()].filter(([k]) => k.startsWith(entry.slug + "-"))
+  );
+  if (cardPending.size === 0) return;
+  await uploadFiles(cardPending);
+}
+
+document.getElementById("uploadAllBtn").addEventListener("click", async () => {
+  if (pendingUploads.size === 0) return;
+  await uploadFiles(pendingUploads);
+});
+
+// ─────────────────────────────────────────────
+// SEARCH
+// ─────────────────────────────────────────────
+document.getElementById("searchInput").addEventListener("input", (e) => {
+  const q = e.target.value.toLowerCase().trim();
+  if (!q) {
+    renderGrid(allEntries);
+    return;
+  }
+  const filtered = allEntries.filter(entry => entry.artist.toLowerCase().includes(q));
+  renderGrid(filtered);
+});
+
+// ─────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────
+loadSavedConfig();
+
+// Auto-load if config already present from session
+if (ghConfig.owner && ghConfig.repo && ghConfig.token) {
+  initLoad();
+} else {
+  // Still load posts (works without GH config)
+  initLoad();
+}
+</script>
+</body>
+</html>
