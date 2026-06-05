@@ -809,7 +809,11 @@ kbd {
   object-fit: contain;
   object-position: center center;
   display: block;
-  filter: brightness(1.4) contrast(.95) saturate(0) sepia(.35);
+filter:
+    grayscale(100%)
+    contrast(1.25)
+    brightness(1.08)
+    sepia(0.18);
 }
 
 .missing-media {
