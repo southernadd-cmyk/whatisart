@@ -30,16 +30,15 @@ const COMIC_ORDER = [
 let artistKeyNavHandler = null;
 
 // ─── Image path helpers ────────────────────────────────────────────────────
-// Original panels live at  ./media/posts/<folder>/<filename>
-// Optimised WebP copies at ./media/posts/<folder>/<stem>-opt.webp
+// Originals and optimised WebP copies live in the same folder.
+// e.g. media/posts/202505/17843733093481609.jpg
+//  →   media/posts/202505/17843733093481609-opt.webp
 function toOptimisedPath(originalSrc) {
-  // originalSrc example: "./your_instagram_activity/media/posts/202505/17843733093481609.jpg"
-  // or bare:              "media/posts/202505/17843733093481609.jpg"
   const clean = (originalSrc || '').replace(/^\.?\//, '');
   const lastSlash = clean.lastIndexOf('/');
-  const dir  = clean.substring(0, lastSlash);   // media/posts/202505
-  const file = clean.substring(lastSlash + 1);  // 17843733093481609.jpg
-  const stem = file.replace(/\.[^.]+$/, '');    // 17843733093481609
+  const dir  = clean.substring(0, lastSlash);  // same folder as original
+  const file = clean.substring(lastSlash + 1);
+  const stem = file.replace(/\.[^.]+$/, '');
   return `./${dir}/${stem}-opt.webp`;
 }
 
@@ -58,7 +57,6 @@ function setEntryCount(n) {
   const el = document.getElementById('entryCount');
   if (el) el.textContent = `${n} ENTRIES`;
 }
-
 function slugify(text) {
   return (text || '').toLowerCase().normalize('NFD')
     .replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9\s]/g,' ')
@@ -97,7 +95,7 @@ function normalizeCompare(text) {
 }
 function resolveCanonicalArtist(captionLines, fallbackName='unknown-artist') {
   const caption = normalizeCompare(captionLines.join(' '));
-  function wordMatch(hay,needle) {
+  function wordMatch(hay, needle) {
     return new RegExp(`(?<![a-z0-9])${needle.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}(?![a-z0-9])`).test(hay);
   }
   let bestName=fallbackName, bestScore=-1;
@@ -290,10 +288,8 @@ function openHiresModal(originalSrc, altText) {
   tmpImg.src = src;
 }
 
-// ─── Flipbook (artist page) ───────────────────────────────────────────────
+// ─── Flipbook ─────────────────────────────────────────────────────────────
 let flipbookInitialised = false;
-let currentPanels = [];   // { optimised, original, alt }[]
-let currentPanelIndex = 0;
 
 function checkLandscape() {
   const isPortrait = window.innerHeight > window.innerWidth;
@@ -302,51 +298,76 @@ function checkLandscape() {
   warning.classList.toggle('is-visible', isPortrait);
 }
 
-function updateFlipbookPanel(idx) {
-  const panel = currentPanels[idx];
-  if (!panel) return;
-  currentPanelIndex = idx;
+function syncControls(page, panels) {
+  // page is 1-based: page 1 = title, pages 2..N+1 = panels
+  const idx      = page - 2;
+  const count    = document.getElementById('flipbookCount');
+  const hint     = document.getElementById('flipbookHint');
+  const hiresBtn = document.getElementById('hiresBtn');
 
-  const img   = document.querySelector('#flipbookImg');
-  const count = document.getElementById('flipbookCount');
-  const hint  = document.getElementById('flipbookHint');
-  const btn   = document.getElementById('hiresBtn');
-  if (!img) return;
-
-  img.style.opacity = '0';
-  img.src = panel.optimised;
-  img.alt = panel.alt;
-  img.onload  = () => { img.style.opacity = '1'; };
-  img.onerror = () => {
-    // fall back to original if optimised missing
-    img.src = panel.original;
-    img.style.opacity = '1';
-  };
-
-  if (count) count.textContent = `${idx+1} / ${currentPanels.length}`;
-  if (hint) {
-    if (idx === 0 && currentPanels.length > 1) hint.textContent = 'Turn page →';
-    else if (idx === currentPanels.length-1) hint.textContent = '← Turn back';
-    else hint.textContent = '← Turn page →';
+  if (page === 1) {
+    if (count)    count.textContent    = '';
+    if (hint)     hint.textContent     = 'Turn page →';
+    if (hiresBtn) hiresBtn.disabled    = true;
+    return;
   }
-  if (btn) btn.dataset.original = panel.original;
+
+  const panel = panels[idx];
+  if (!panel) return;
+
+  if (count) count.textContent = `${idx + 1} / ${panels.length}`;
+  if (hint) {
+    if (idx === 0 && panels.length > 1)   hint.textContent = 'Turn page →';
+    else if (idx === panels.length - 1)   hint.textContent = '← Turn back';
+    else                                   hint.textContent = '← Turn page →';
+  }
+  if (hiresBtn) {
+    hiresBtn.disabled          = false;
+    hiresBtn.dataset.original  = panel.original;
+    hiresBtn.dataset.alt       = panel.alt;
+  }
 }
 
 function initFlipbook(panels) {
-  currentPanels = panels;
-  currentPanelIndex = 0;
-  updateFlipbookPanel(0);
-
   if (flipbookInitialised) return;
   flipbookInitialised = true;
 
-  const $fb    = $('#flipbook');
-  const width  = $fb.width();
-  const height = $fb.height();
+  const $fb   = $('#flipbook');
+  const shell = document.querySelector('.flipbook-shell');
 
+  // Clear any placeholder HTML from the static page
+  $fb.empty();
+
+  // ── Build all pages as DOM nodes upfront ──────────────────────────────
+  // Page 1: title
+  $fb.append(
+    `<div class="flipbook-title-page"><h2>WHAT IS ART?</h2></div>`
+  );
+
+  // Pages 2…N+1: one per panel
+  panels.forEach((panel) => {
+    $fb.append(
+      `<div class="flipbook-page">` +
+        `<div class="flipbook-comic-frame">` +
+          `<img class="flipbook-panel-img"` +
+               ` src="${escapeHtml(panel.optimised)}"` +
+               ` data-fallback="${escapeHtml(panel.original)}"` +
+               ` alt="${escapeHtml(panel.alt)}"` +
+               ` draggable="false"` +
+               ` onerror="this.src=this.dataset.fallback" />` +
+        `</div>` +
+      `</div>`
+    );
+  });
+
+  // ── Read dimensions from the shell (CSS aspect-ratio has sized it) ────
+  const w = shell ? shell.offsetWidth  : ($fb.parent().width()  || 800);
+  const h = shell ? shell.offsetHeight : ($fb.parent().height() || 600);
+
+  // ── Initialise Turn.js ────────────────────────────────────────────────
   $fb.turn({
-    width,
-    height,
+    width:        w,
+    height:       h,
     display:      'single',
     autoCenter:   true,
     gradients:    true,
@@ -359,56 +380,42 @@ function initFlipbook(panels) {
         if (corner) e.preventDefault();
       },
       turned(e, page) {
-        // page 1 = title, pages 2..N = panels
-        const idx = page - 2;
-        if (idx >= 0 && idx < currentPanels.length) {
-          updateFlipbookPanel(idx);
-        } else if (page === 1) {
-          const hint = document.getElementById('flipbookHint');
-          if (hint) hint.textContent = 'Turn page →';
-        }
+        syncControls(page, panels);
       }
     }
   });
 
-  // Block all native corner drag — only the button navigates
+  // Seed controls for the initial title page
+  syncControls(1, panels);
+
+  // ── Block all corner drag — buttons only ──────────────────────────────
   const fbEl = $fb.get(0);
   ['click','mousedown','mouseup','touchstart','touchmove','touchend'].forEach(evt => {
     fbEl.addEventListener(evt, e => {
-      e.stopImmediatePropagation(); e.preventDefault();
+      e.stopImmediatePropagation();
+      e.preventDefault();
     }, true);
   });
 
-  // Next button
-  const nextBtn = document.getElementById('nextBtn');
-  if (nextBtn) {
-    nextBtn.addEventListener('click', () => {
-      const total   = $fb.turn('pages');
-      const current = $fb.turn('page');
-      const next    = current >= total ? 1 : current + 1;
-      $fb.turn('page', next);
-    });
-  }
+  // ── Prev / Next buttons ───────────────────────────────────────────────
+  document.getElementById('nextBtn')?.addEventListener('click', () => {
+    const total   = $fb.turn('pages');
+    const current = $fb.turn('page');
+    $fb.turn('page', current >= total ? 1 : current + 1);
+  });
 
-  // Prev button
-  const prevBtn = document.getElementById('prevBtn');
-  if (prevBtn) {
-    prevBtn.addEventListener('click', () => {
-      const current = $fb.turn('page');
-      const prev    = current <= 1 ? $fb.turn('pages') : current - 1;
-      $fb.turn('page', prev);
-    });
-  }
+  document.getElementById('prevBtn')?.addEventListener('click', () => {
+    const current = $fb.turn('page');
+    $fb.turn('page', current <= 1 ? $fb.turn('pages') : current - 1);
+  });
 
-  // Hi-res button
-  const hiresBtn = document.getElementById('hiresBtn');
-  if (hiresBtn) {
-    hiresBtn.addEventListener('click', () => {
-      const original = hiresBtn.dataset.original;
-      const alt = document.querySelector('#flipbookImg')?.alt || '';
-      if (original) openHiresModal(original, alt);
-    });
-  }
+  // ── Hi-res button ─────────────────────────────────────────────────────
+  document.getElementById('hiresBtn')?.addEventListener('click', () => {
+    const btn = document.getElementById('hiresBtn');
+    const original = btn?.dataset.original;
+    const alt      = btn?.dataset.alt || '';
+    if (original) openHiresModal(original, alt);
+  });
 }
 
 // ─── Page renderers ───────────────────────────────────────────────────────
@@ -451,10 +458,10 @@ function renderArtist({ posts }) {
   const panels = post.panels.map((src, i) => ({
     optimised: toOptimisedPath(src),
     original:  toOriginalPath(src),
-    alt:       `${post.artist} — panel ${i+1}`,
+    alt:       `${post.artist} — panel ${i + 1}`,
   }));
 
-  // Flipbook: wait for jQuery + Turn.js then initialise
+  // Wait for jQuery + Turn.js, then init
   const tryInit = () => {
     if (typeof $ !== 'undefined' && typeof $.fn.turn === 'function') {
       initFlipbook(panels);
@@ -464,17 +471,21 @@ function renderArtist({ posts }) {
   };
   tryInit();
 
-  // Also render the classic strip (hidden on artist page, shown as fallback)
+  // Classic strip below flipbook — panels are clickable for hi-res
   const strip = document.getElementById('panelStrip');
   if (strip) {
-    strip.innerHTML = panels.map((p, i) =>
-      `<figure class="panel">
-        <button class="panel__hires-trigger" type="button" aria-label="View hi-res: ${escapeHtml(p.alt)}" data-original="${escapeHtml(p.original)}" data-alt="${escapeHtml(p.alt)}">
-          <img loading="lazy" src="${p.optimised}" alt="${escapeHtml(p.alt)}"
-            onerror="this.src='${p.original}'" />
-          <span class="panel__hires-badge" aria-hidden="true">HI-RES</span>
-        </button>
-       </figure>`
+    strip.innerHTML = panels.map((p) =>
+      `<figure class="panel">` +
+        `<button class="panel__hires-trigger" type="button"` +
+                ` aria-label="View hi-res: ${escapeHtml(p.alt)}"` +
+                ` data-original="${escapeHtml(p.original)}"` +
+                ` data-alt="${escapeHtml(p.alt)}">` +
+          `<img loading="lazy" src="${escapeHtml(p.optimised)}"` +
+               ` alt="${escapeHtml(p.alt)}"` +
+               ` onerror="this.src='${escapeHtml(p.original)}'" />` +
+          `<span class="panel__hires-badge" aria-hidden="true">HI-RES</span>` +
+        `</button>` +
+      `</figure>`
     ).join('');
 
     strip.querySelectorAll('.panel__hires-trigger').forEach(btn => {
@@ -488,7 +499,6 @@ async function main() {
   initConceptTicker();
   createModal();
 
-  // Landscape check for flipbook view
   window.addEventListener('resize', checkLandscape);
   window.addEventListener('orientationchange', checkLandscape);
   checkLandscape();
@@ -497,8 +507,8 @@ async function main() {
     const data = await getData();
     const page = document.body.getAttribute('data-page');
     renderReelBackdrop(data.reel);
-    if (page==='intro')   renderIntro(data);
-    else if (page==='artist') renderArtist(data);
+    if (page === 'intro')        renderIntro(data);
+    else if (page === 'artist')  renderArtist(data);
   } catch (error) {
     const target = document.getElementById('appError');
     if (target) target.textContent = `Could not load Instagram export data: ${error.message}`;

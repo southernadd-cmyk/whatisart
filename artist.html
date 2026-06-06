@@ -1,55 +1,101 @@
 <!doctype html>
 <html lang="en">
 <head>
+  <script>document.documentElement.classList.add('ready');</script>
+  <style>html { visibility: hidden; } html.ready { visibility: visible; }</style>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Artist | What Is Art Comic</title>
+  <title>What Is Art Comic</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,600;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  <link rel="manifest" href="site.webmanifest">
+  <link href="https://fonts.googleapis.com/css2?family=Borel&family=IBM+Plex+Mono:ital,wght@0,400;0,600;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="./style.css" />
 </head>
 <body data-page="artist">
+
+  <!-- Landscape orientation nudge (only shows in portrait) -->
+  <div id="orientationWarning" aria-live="polite">
+    <span class="orientation-icon" aria-hidden="true">📱</span>
+    <h2 class="orientation-title">Rotate Your Device</h2>
+    <p class="orientation-body">This page works best in landscape mode — the comic strip deserves the full width.</p>
+  </div>
+
+  <!-- Reel video backdrop -->
   <div class="reel-backdrop" id="reelBackdrop" aria-hidden="true"></div>
+  <button type="button" class="reel-sound-btn" id="reelSoundBtn" hidden aria-pressed="false" aria-label="Turn sound on for the background reel">Sound on</button>
 
-  <button type="button" class="reel-sound-btn" id="reelSoundBtn" hidden aria-pressed="false" aria-label="Turn sound on for the background reel">
-    Sound on
-  </button>
-
+  <!-- Atmospheric overlay -->
   <div class="atmosphere" aria-hidden="true">
     <div class="atmosphere__grain"></div>
     <div class="atmosphere__scan"></div>
     <div class="atmosphere__grid"></div>
   </div>
 
-  <main class="page page--artist" id="artistPage">
-    <nav class="artist-step-nav" id="artistStepNav" aria-label="Previous and next artist"></nav>
-
-    <div class="toolbar toolbar--artist">
-      <a class="back-link" href="./index.html">Index</a>
-      <span class="post-date" id="postDate"></span>
+  <!-- Top meta bar -->
+  <header class="concept-shell concept-shell--compact">
+    <div class="concept-shell__meta">
+      <span class="specimen-id"><a href="./index.html" class="back-link">← Index</a></span>
+      <span class="specimen-id specimen-id--right" id="postDate"></span>
     </div>
+  </header>
 
-    <section class="stage stage--artist">
-      <div class="stage__titleblock stage__titleblock--artist">
-        <h1 class="site-title site-title--artist" id="artistName">Artist</h1>
-        
+  <main class="page page--artist" id="main">
+    <div id="appError" class="app-error" role="alert"></div>
+    <div id="artistPage">
+
+      <!-- Artist title + step nav -->
+      <div class="stage stage--artist">
+        <div class="stage__titleblock stage__titleblock--artist">
+          <h1 class="site-title site-title--artist" id="artistName"></h1>
+        </div>
+        <div class="artist-step-nav" id="artistStepNav" aria-label="Browse artists"></div>
       </div>
 
-      <div id="appError" class="app-error" role="alert"></div>
+      <!-- ── Flipbook ── -->
+      <section class="flipbook-section" aria-label="Comic strip flipbook">
+        <div class="flipbook-shell">
+          <!-- Turn.js empties and rebuilds this entirely in JS -->
+          <div id="flipbook"></div>
+          <div class="flipbook-spine" aria-hidden="true"></div>
+        </div>
 
-      <div class="artist-layout">
+        <div class="flipbook-controls">
+          <button type="button" class="flipbook-btn" id="prevBtn" aria-label="Previous panel">←</button>
+          <div class="flipbook-meta">
+            <span id="flipbookCount"></span>
+            <span id="flipbookHint"></span>
+          </div>
+          <button type="button" class="hires-btn" id="hiresBtn" data-original="" data-alt="" disabled>
+            <span class="hires-btn__icon" aria-hidden="true">⬛</span>
+            <span>View hi-res</span>
+          </button>
+          <button type="button" class="flipbook-btn" id="nextBtn" aria-label="Next panel">→</button>
+        </div>
+      </section>
+
+      <!-- ── Classic strip + haiku (below flipbook) ── -->
+      <div class="artist-layout" style="margin-top: 28px;">
         <div class="strip-wrap">
-
+          <p class="strip-label">All four panels — click any to view hi-res</p>
           <div class="strip-1x4" id="panelStrip"></div>
         </div>
         <aside class="haiku-box">
-          <div class="haiku" id="haikuText"></div>
+          <p class="haiku-label">Haiku</p>
+          <pre class="haiku" id="haikuText"></pre>
         </aside>
       </div>
-    </section>
+
+    </div>
   </main>
 
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+    integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+  <script src="./turn.js"></script>
   <script src="./app.js"></script>
 </body>
 </html>
