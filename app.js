@@ -261,28 +261,28 @@ function bindStripHiRes(container) {
   });
 }
 
-// ─── Page-turn animation ──────────────────────────────────────────────────
-// direction: 'next' flips left-to-right, 'prev' flips right-to-left
-let flipping = false;
+// ─── Page transition ─────────────────────────────────────────────────────
+// Uses the View Transitions API when available (Chrome 111+, Safari 18+).
+// Falls back to a simple instant navigate on older browsers.
+// Direction is stored so the incoming page knows which way to slide in.
+let navigating = false;
 
 function flipToArtist(href, direction) {
-  if (flipping) return;
-  flipping = true;
+  if (navigating) return;
+  navigating = true;
+  sessionStorage.setItem('flipDirection', direction);
 
-  const card  = document.getElementById('flipCard');
-  const stage = document.getElementById('flipStage');
-  if (!card || !stage) { window.location.href = href; return; }
-
-  // Pick animation class
-  const animClass = direction === 'next' ? 'flip-exit--next' : 'flip-exit--prev';
-  card.classList.add(animClass);
-
-  card.addEventListener('animationend', () => {
+  if (!document.startViewTransition) {
     window.location.href = href;
-  }, { once: true });
+    return;
+  }
 
-  // Fallback if animationend never fires
-  setTimeout(() => { window.location.href = href; }, 900);
+  // Set a data-attr on <html> so the CSS can pick the right keyframes
+  document.documentElement.dataset.flipDir = direction;
+
+  document.startViewTransition(() => {
+    window.location.href = href;
+  });
 }
 
 // ─── Intro page renderer ──────────────────────────────────────────────────
@@ -380,22 +380,14 @@ function renderArtist({ posts }) {
     if (e.key==='ArrowRight' && next) { e.preventDefault(); flipToArtistWithStore(artistUrl(next),'next'); }
   });
 
-  // ── Enter animation (strip flips in on load) ──────────────────────────
-  const card = document.getElementById('flipCard');
-  if (card) {
-    // Read entry direction from sessionStorage (set just before navigate)
-    const enterDir = sessionStorage.getItem('flipDirection') || 'next';
-    sessionStorage.removeItem('flipDirection');
-    card.classList.add(enterDir === 'prev' ? 'flip-enter--prev' : 'flip-enter--next');
-    card.addEventListener('animationend', () => {
-      card.classList.remove('flip-enter--next','flip-enter--prev');
-    }, { once: true });
-  }
+  // View Transitions API handles the enter animation automatically.
+  // Clear the stored direction so it doesn't persist across unrelated navigations.
+  sessionStorage.removeItem('flipDirection');
+  document.documentElement.removeAttribute('data-flip-dir');
 }
 
-// Store direction in sessionStorage before navigating so the new page knows how to enter
+// flipToArtistWithStore kept as alias for backward compat
 function flipToArtistWithStore(href, direction) {
-  sessionStorage.setItem('flipDirection', direction);
   flipToArtist(href, direction);
 }
 

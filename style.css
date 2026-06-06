@@ -367,59 +367,66 @@ kbd { display: inline-block; padding: 2px 6px; font-family: var(--font-mono); fo
   margin-top: 20px;
 }
 
-/* ── Flip stage: provides perspective for the 3-D turn ── */
-.flip-stage {
-  perspective: 1400px;
-  perspective-origin: 50% 40%;
-}
-
-/* ── Flip card: the element that actually rotates ── */
-.flip-card {
-  position: relative;
-  transform-style: preserve-3d;
-  transform-origin: center center;
-  will-change: transform;
-}
-
-/* Exit animations — strip flips away before navigation */
-.flip-card.flip-exit--next {
-  animation: flipExitNext 0.55s cubic-bezier(0.4, 0, 1, 1) forwards;
-}
-.flip-card.flip-exit--prev {
-  animation: flipExitPrev 0.55s cubic-bezier(0.4, 0, 1, 1) forwards;
-}
-
-/* Enter animations — strip flips in on page load */
-.flip-card.flip-enter--next {
-  animation: flipEnterNext 0.6s cubic-bezier(0, 0, 0.2, 1) both;
-}
-.flip-card.flip-enter--prev {
-  animation: flipEnterPrev 0.6s cubic-bezier(0, 0, 0.2, 1) both;
-}
-
-@keyframes flipExitNext {
-  0%   { transform: rotateY(0deg) translateZ(0); opacity: 1; }
-  60%  { opacity: 0.6; }
-  100% { transform: rotateY(-90deg) translateZ(-40px) scaleX(0.85); opacity: 0; }
-}
-@keyframes flipExitPrev {
-  0%   { transform: rotateY(0deg) translateZ(0); opacity: 1; }
-  60%  { opacity: 0.6; }
-  100% { transform: rotateY(90deg) translateZ(-40px) scaleX(0.85); opacity: 0; }
-}
-@keyframes flipEnterNext {
-  0%   { transform: rotateY(90deg) translateZ(-40px) scaleX(0.85); opacity: 0; }
-  40%  { opacity: 0.6; }
-  100% { transform: rotateY(0deg) translateZ(0); opacity: 1; }
-}
-@keyframes flipEnterPrev {
-  0%   { transform: rotateY(-90deg) translateZ(-40px) scaleX(0.85); opacity: 0; }
-  40%  { opacity: 0.6; }
-  100% { transform: rotateY(0deg) translateZ(0); opacity: 1; }
-}
-
-/* Back face (unused visually, just needed for transform-style) */
+/* ── Flip stage & card — just layout, no transform needed ── */
+.flip-stage { /* kept for structural clarity */ }
+.flip-card  { /* transitions handled by View Transitions API */ }
 .flip-card__face--back { display: none; }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   VIEW TRANSITIONS — smooth slide between artist pages
+   The ::view-transition-old/new pseudos wrap the entire captured page.
+   We give the strip a named view-transition so it animates independently
+   from the rest of the chrome (title, haiku, nav stay put via crossfade).
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* Name the strip so it gets its own transition layer */
+.flip-card {
+  view-transition-name: comic-strip;
+}
+
+/* Default browser crossfade for everything except the strip */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.35s;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── Next: old slides left out, new slides in from right ── */
+html[data-flip-dir="next"]::view-transition-old(comic-strip) {
+  animation: 0.45s cubic-bezier(0.4, 0, 1, 1) both vt-slide-out-left;
+}
+html[data-flip-dir="next"]::view-transition-new(comic-strip) {
+  animation: 0.45s cubic-bezier(0, 0, 0.2, 1) both vt-slide-in-right;
+}
+
+/* ── Prev: old slides right out, new slides in from left ── */
+html[data-flip-dir="prev"]::view-transition-old(comic-strip) {
+  animation: 0.45s cubic-bezier(0.4, 0, 1, 1) both vt-slide-out-right;
+}
+html[data-flip-dir="prev"]::view-transition-new(comic-strip) {
+  animation: 0.45s cubic-bezier(0, 0, 0.2, 1) both vt-slide-in-left;
+}
+
+@keyframes vt-slide-out-left {
+  to   { transform: translateX(-6%) scale(0.97); opacity: 0; }
+}
+@keyframes vt-slide-in-right {
+  from { transform: translateX(6%) scale(0.97); opacity: 0; }
+}
+@keyframes vt-slide-out-right {
+  to   { transform: translateX(6%) scale(0.97); opacity: 0; }
+}
+@keyframes vt-slide-in-left {
+  from { transform: translateX(-6%) scale(0.97); opacity: 0; }
+}
+
+/* Fallback for browsers without View Transitions — instant, no jank */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(comic-strip),
+  ::view-transition-new(comic-strip) {
+    animation: none;
+  }
+}
 
 /* Override strip sizing on the artist page — panels taller, no 2-col fallback */
 body[data-page="artist"] .strip-1x4 {
