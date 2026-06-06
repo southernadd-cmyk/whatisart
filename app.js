@@ -27,35 +27,23 @@ const COMIC_ORDER = [
   "Banksy","Jackson Pollock","Barbara Kruger","Andy Warhol","Marcel Duchamp",
 ];
 
-let artistKeyNavHandler = null;
-
 // ─── Image path helpers ────────────────────────────────────────────────────
-// Originals and optimised WebP copies live in the same folder.
-// e.g. media/posts/202505/17843733093481609.jpg
-//  →   media/posts/202505/17843733093481609-opt.webp
-function toOptimisedPath(originalSrc) {
-  const clean = (originalSrc || '').replace(/^\.?\//, '');
+function toOptimisedPath(src) {
+  const clean = (src || '').replace(/^\.?\//, '');
   const lastSlash = clean.lastIndexOf('/');
-  const dir  = clean.substring(0, lastSlash);  // same folder as original
+  const dir  = clean.substring(0, lastSlash);
   const file = clean.substring(lastSlash + 1);
   const stem = file.replace(/\.[^.]+$/, '');
   return `./${dir}/${stem}-opt.webp`;
 }
-
 function toOriginalPath(src) {
-  const clean = (src || '').replace(/^\.?\//, '');
-  return `./${clean}`;
+  return './' + (src || '').replace(/^\.?\//, '');
 }
 
 // ─── Utilities ────────────────────────────────────────────────────────────
 function escapeHtml(str) {
   return String(str)
     .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-function initConceptTicker() {}
-function setEntryCount(n) {
-  const el = document.getElementById('entryCount');
-  if (el) el.textContent = `${n} ENTRIES`;
 }
 function slugify(text) {
   return (text || '').toLowerCase().normalize('NFD')
@@ -84,7 +72,7 @@ function inferArtist(lines) {
 }
 function extractHaiku(lines, artist) {
   const filtered = lines.map(cleanupLine).filter(Boolean)
-    .filter(l => !l.startsWith('#')).filter(l => !l.startsWith('@')).filter(l => l!=='.');
+    .filter(l => !l.startsWith('#')).filter(l => !l.startsWith('@')).filter(l => l !== '.');
   const al = artist.toLowerCase().replace(/[._-]/g,'');
   if (!filtered.some(l => l.toLowerCase().replace(/\s+/g,'').includes(al))) filtered.unshift(artist);
   return filtered.join('\n');
@@ -93,12 +81,12 @@ function normalizeCompare(text) {
   return (text||'').toLowerCase().normalize('NFD')
     .replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim();
 }
-function resolveCanonicalArtist(captionLines, fallbackName='unknown-artist') {
+function resolveCanonicalArtist(captionLines, fallback='unknown-artist') {
   const caption = normalizeCompare(captionLines.join(' '));
   function wordMatch(hay, needle) {
     return new RegExp(`(?<![a-z0-9])${needle.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}(?![a-z0-9])`).test(hay);
   }
-  let bestName=fallbackName, bestScore=-1;
+  let bestName=fallback, bestScore=-1;
   for (const c of COMIC_ORDER) {
     const cn = normalizeCompare(c);
     const tokens = cn.split(' ').filter(t=>t.length>2);
@@ -110,27 +98,27 @@ function resolveCanonicalArtist(captionLines, fallbackName='unknown-artist') {
     if (ft && wordMatch(caption,ft)) score+=2;
     if (score>bestScore) { bestScore=score; bestName=c; }
   }
-  return bestScore<2 ? fallbackName : bestName;
+  return bestScore<2 ? fallback : bestName;
 }
 function parsePosts(html) {
   const doc = new DOMParser().parseFromString(html,'text/html');
   return Array.from(doc.querySelectorAll('main .uiBoxWhite.noborder')).map(card => {
-    const captionText = card.querySelector('h2')?.textContent || '';
+    const captionText  = card.querySelector('h2')?.textContent || '';
     const captionLines = captionText.split('\n').map(cleanupLine).filter(Boolean);
-    const imageUrls = Array.from(card.querySelectorAll('a[href*="media/posts/"] img'))
-      .map(img => img.getAttribute('src'));
+    const imageUrls    = Array.from(card.querySelectorAll('a[href*="media/posts/"] img'))
+                              .map(img => img.getAttribute('src'));
     const date = card.querySelector('._a6-o')?.textContent?.trim() || '';
     if (imageUrls.length < 4) return null;
     const inferred = inferArtist(captionLines);
-    const artist = resolveCanonicalArtist(captionLines, inferred);
+    const artist   = resolveCanonicalArtist(captionLines, inferred);
     return { artist, slug: slugify(artist), captionLines,
-      haiku: extractHaiku(captionLines,''), panels: imageUrls.slice(0,4), date };
+             haiku: extractHaiku(captionLines,''), panels: imageUrls.slice(0,4), date };
   }).filter(Boolean);
 }
 function parseReel(html) {
   const doc = new DOMParser().parseFromString(html,'text/html');
-  const video = doc.querySelector('video');
-  return { src: video?.getAttribute('src') || '' };
+  const v   = doc.querySelector('video');
+  return { src: v?.getAttribute('src') || '' };
 }
 function countPostCards(html) { return (html.match(/uiBoxWhite noborder/g)||[]).length; }
 async function getData() {
@@ -140,44 +128,45 @@ async function getData() {
   ]);
   return { posts: parsePosts(postsHtml), postCount: countPostCards(postsHtml), reel: parseReel(reelsHtml) };
 }
-function buildArtistEntries(posts, timelineMode='latest') {
+function buildArtistEntries(posts, mode='latest') {
   const buckets = new Map();
   for (const post of posts) {
     if (!buckets.has(post.slug)) buckets.set(post.slug,[]);
     buckets.get(post.slug).push(post);
   }
   const entries = Array.from(buckets.values()).map(list =>
-    timelineMode==='oldest' ? list[list.length-1] : list[0]);
-  const bySlug = new Map(entries.map(e=>[e.slug,e]));
+    mode==='oldest' ? list[list.length-1] : list[0]);
+  const bySlug  = new Map(entries.map(e=>[e.slug,e]));
   const ordered = [];
   for (const name of COMIC_ORDER) {
     const slug = slugify(name);
     const m = bySlug.get(slug);
     if (m) { ordered.push(m); bySlug.delete(slug); }
   }
-  const unmatched = Array.from(bySlug.values())
+  const rest = Array.from(bySlug.values())
     .sort((a,b)=>a.artist.localeCompare(b.artist,undefined,{sensitivity:'base'}));
-  return [...ordered,...unmatched];
+  return [...ordered,...rest];
 }
 
 // ─── Reel backdrop ────────────────────────────────────────────────────────
-function resolveAssetPath(p) { return './'+(p||'').replace(/^\.?\//,''); }
 function setupReelBackdrop(video) {
   if (!video) return;
   video.muted=true; video.defaultMuted=true; video.loop=true; video.playsInline=true;
   video.setAttribute('playsinline',''); video.setAttribute('webkit-playsinline',''); video.setAttribute('muted','');
   const play = () => { const p=video.play(); if(p) p.catch(()=>{}); };
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    video.pause(); video.removeAttribute('autoplay'); document.body.classList.add('reel-backdrop--static'); return;
+    video.pause(); video.removeAttribute('autoplay');
+    document.body.classList.add('reel-backdrop--static'); return;
   }
   play();
   video.addEventListener('loadeddata', play, {once:true});
   document.addEventListener('visibilitychange', () => { if (!document.hidden) play(); }, {passive:true});
   const btn = document.getElementById('reelSoundBtn');
   if (!btn) return;
-  btn.hidden=false;
+  btn.hidden = false;
   const syncLabel = () => {
-    const on=!video.muted; btn.setAttribute('aria-pressed',String(on));
+    const on = !video.muted;
+    btn.setAttribute('aria-pressed', String(on));
     btn.textContent = on ? 'Mute reel' : 'Sound on';
     btn.setAttribute('aria-label', on ? 'Mute the background reel' : 'Turn sound on for the background reel');
   };
@@ -185,46 +174,19 @@ function setupReelBackdrop(video) {
   btn.addEventListener('click', () => { video.muted=!video.muted; play(); syncLabel(); });
 }
 function renderReelBackdrop(reel) {
-  const el = document.getElementById('reelBackdrop');
+  const el  = document.getElementById('reelBackdrop');
   const btn = document.getElementById('reelSoundBtn');
   if (!el) return;
   if (reel?.src) {
-    const src = resolveAssetPath(reel.src);
+    const src = './' + reel.src.replace(/^\.?\//,'');
     el.innerHTML = `<video class="reel-backdrop__video" src="${src}" autoplay loop muted playsinline preload="auto"></video><div class="reel-backdrop__scrim" aria-hidden="true"></div>`;
     setupReelBackdrop(el.querySelector('video'));
     document.body.classList.add('has-reel-bg');
   } else {
-    el.innerHTML=''; document.body.classList.remove('has-reel-bg');
-    if (btn) btn.hidden=true;
+    el.innerHTML = '';
+    document.body.classList.remove('has-reel-bg');
+    if (btn) btn.hidden = true;
   }
-}
-
-// ─── Step nav ─────────────────────────────────────────────────────────────
-function buildStepNavHtml(entries, currentSlug, mode) {
-  const i = entries.findIndex(p=>p.slug===currentSlug);
-  const prev = i>0 ? entries[i-1] : null;
-  const next = i>=0 && i<entries.length-1 ? entries[i+1] : null;
-  const href = s => `./artist.html?artist=${encodeURIComponent(s)}&mode=${encodeURIComponent(mode)}`;
-  const prevBlock = prev
-    ? `<a class="step-link step-link--prev" rel="prev" href="${href(prev.slug)}"><span class="step-link__arrow">←</span><span class="step-link__name">${escapeHtml(prev.artist)}</span></a>`
-    : `<span class="step-link step-link--dead step-link--prev" aria-disabled="true"><span class="step-link__arrow">←</span><span class="step-link__name">∅</span></span>`;
-  const nextBlock = next
-    ? `<a class="step-link step-link--next" rel="next" href="${href(next.slug)}"><span class="step-link__arrow">→</span><span class="step-link__name">${escapeHtml(next.artist)}</span></a>`
-    : `<span class="step-link step-link--dead step-link--next" aria-disabled="true"><span class="step-link__arrow">→</span><span class="step-link__name">∅</span></span>`;
-  return prevBlock + nextBlock;
-}
-function bindArtistKeyboard(prev, next, mode) {
-  if (artistKeyNavHandler) { window.removeEventListener('keydown', artistKeyNavHandler); artistKeyNavHandler=null; }
-  if (!prev && !next) return;
-  const href = s => `./artist.html?artist=${encodeURIComponent(s)}&mode=${encodeURIComponent(mode)}`;
-  artistKeyNavHandler = e => {
-    if (e.defaultPrevented) return;
-    const tag = e.target?.tagName;
-    if (tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT') return;
-    if (e.key==='ArrowLeft' && prev) { e.preventDefault(); window.location.href=href(prev.slug); }
-    if (e.key==='ArrowRight' && next) { e.preventDefault(); window.location.href=href(next.slug); }
-  };
-  window.addEventListener('keydown', artistKeyNavHandler);
 }
 
 // ─── Hi-res modal ─────────────────────────────────────────────────────────
@@ -241,7 +203,7 @@ function createModal() {
       <button class="hires-modal__close" aria-label="Close" type="button">✕</button>
       <div class="hires-modal__stage">
         <img class="hires-modal__img" src="" alt="" />
-        <div class="hires-modal__loader" aria-label="Loading">
+        <div class="hires-modal__loader">
           <span class="hires-modal__spinner"></span>
           <span>Loading hi-res…</span>
         </div>
@@ -249,7 +211,6 @@ function createModal() {
       <p class="hires-modal__caption"></p>
     </div>`;
   document.body.appendChild(overlay);
-
   const close = () => {
     overlay.classList.remove('is-open');
     document.body.classList.remove('modal-open');
@@ -259,7 +220,6 @@ function createModal() {
   overlay.querySelector('.hires-modal__close').addEventListener('click', close);
   document.addEventListener('keydown', e => { if (e.key==='Escape') close(); });
 }
-
 function openHiresModal(originalSrc, altText) {
   const overlay = document.getElementById('hiresModal');
   if (!overlay) return;
@@ -267,168 +227,80 @@ function openHiresModal(originalSrc, altText) {
   const loader = overlay.querySelector('.hires-modal__loader');
   const cap    = overlay.querySelector('.hires-modal__caption');
   const src    = toOriginalPath(originalSrc);
-
   img.src = ''; img.alt = altText;
   cap.textContent = altText;
   loader.style.display = 'flex';
-  img.style.opacity = '0';
+  img.style.opacity   = '0';
   overlay.classList.add('is-open');
   document.body.classList.add('modal-open');
-
-  const tmpImg = new Image();
-  tmpImg.onload = () => {
-    img.src = src;
-    loader.style.display = 'none';
-    img.style.opacity = '1';
-  };
-  tmpImg.onerror = () => {
-    loader.style.display = 'none';
-    cap.textContent = `${altText} — hi-res not found`;
-  };
-  tmpImg.src = src;
+  const tmp = new Image();
+  tmp.onload  = () => { img.src=src; loader.style.display='none'; img.style.opacity='1'; };
+  tmp.onerror = () => { loader.style.display='none'; cap.textContent=`${altText} — hi-res not found`; };
+  tmp.src = src;
 }
 
-// ─── Flipbook ─────────────────────────────────────────────────────────────
-let flipbookInitialised = false;
-
-function checkLandscape() {
-  const isPortrait = window.innerHeight > window.innerWidth;
-  const warning = document.getElementById('orientationWarning');
-  if (!warning) return;
-  warning.classList.toggle('is-visible', isPortrait);
+// ─── Strip builder ────────────────────────────────────────────────────────
+function buildStripHtml(panels) {
+  return panels.map(p =>
+    `<figure class="panel">` +
+      `<button class="panel__hires-trigger" type="button"` +
+              ` aria-label="View hi-res: ${escapeHtml(p.alt)}"` +
+              ` data-original="${escapeHtml(p.original)}"` +
+              ` data-alt="${escapeHtml(p.alt)}">` +
+        `<img loading="lazy" src="${escapeHtml(p.optimised)}"` +
+             ` alt="${escapeHtml(p.alt)}"` +
+             ` onerror="this.src='${escapeHtml(p.original)}'" />` +
+        `<span class="panel__hires-badge" aria-hidden="true">HI-RES</span>` +
+      `</button>` +
+    `</figure>`
+  ).join('');
 }
-
-function syncControls(page, panels) {
-  // page is 1-based: page 1 = title, pages 2..N+1 = panels
-  const idx      = page - 2;
-  const count    = document.getElementById('flipbookCount');
-  const hint     = document.getElementById('flipbookHint');
-  const hiresBtn = document.getElementById('hiresBtn');
-
-  if (page === 1) {
-    if (count)    count.textContent    = '';
-    if (hint)     hint.textContent     = 'Turn page →';
-    if (hiresBtn) hiresBtn.disabled    = true;
-    return;
-  }
-
-  const panel = panels[idx];
-  if (!panel) return;
-
-  if (count) count.textContent = `${idx + 1} / ${panels.length}`;
-  if (hint) {
-    if (idx === 0 && panels.length > 1)   hint.textContent = 'Turn page →';
-    else if (idx === panels.length - 1)   hint.textContent = '← Turn back';
-    else                                   hint.textContent = '← Turn page →';
-  }
-  if (hiresBtn) {
-    hiresBtn.disabled          = false;
-    hiresBtn.dataset.original  = panel.original;
-    hiresBtn.dataset.alt       = panel.alt;
-  }
-}
-
-function initFlipbook(panels) {
-  if (flipbookInitialised) return;
-  flipbookInitialised = true;
-
-  const $fb   = $('#flipbook');
-  const shell = document.querySelector('.flipbook-shell');
-
-  // Clear any placeholder HTML from the static page
-  $fb.empty();
-
-  // ── Build all pages as DOM nodes upfront ──────────────────────────────
-  // Page 1: title
-  $fb.append(
-    `<div class="flipbook-title-page"><h2>WHAT IS ART?</h2></div>`
-  );
-
-  // Pages 2…N+1: one per panel
-  panels.forEach((panel) => {
-    $fb.append(
-      `<div class="flipbook-page">` +
-        `<div class="flipbook-comic-frame">` +
-          `<img class="flipbook-panel-img"` +
-               ` src="${escapeHtml(panel.optimised)}"` +
-               ` data-fallback="${escapeHtml(panel.original)}"` +
-               ` alt="${escapeHtml(panel.alt)}"` +
-               ` draggable="false"` +
-               ` onerror="this.src=this.dataset.fallback" />` +
-        `</div>` +
-      `</div>`
-    );
-  });
-
-  // ── Read dimensions from the shell (CSS aspect-ratio has sized it) ────
-  const w = shell ? shell.offsetWidth  : ($fb.parent().width()  || 800);
-  const h = shell ? shell.offsetHeight : ($fb.parent().height() || 600);
-
-  // ── Initialise Turn.js ────────────────────────────────────────────────
-  $fb.turn({
-    width:        w,
-    height:       h,
-    display:      'single',
-    autoCenter:   true,
-    gradients:    true,
-    acceleration: true,
-    elevation:    90,
-    duration:     800,
-    cornerSize:   44,
-    when: {
-      start(e, pageObject, corner) {
-        if (corner) e.preventDefault();
-      },
-      turned(e, page) {
-        syncControls(page, panels);
-      }
-    }
-  });
-
-  // Seed controls for the initial title page
-  syncControls(1, panels);
-
-  // ── Block all corner drag — buttons only ──────────────────────────────
-  const fbEl = $fb.get(0);
-  ['click','mousedown','mouseup','touchstart','touchmove','touchend'].forEach(evt => {
-    fbEl.addEventListener(evt, e => {
-      e.stopImmediatePropagation();
-      e.preventDefault();
-    }, true);
-  });
-
-  // ── Prev / Next buttons ───────────────────────────────────────────────
-  document.getElementById('nextBtn')?.addEventListener('click', () => {
-    const total   = $fb.turn('pages');
-    const current = $fb.turn('page');
-    $fb.turn('page', current >= total ? 1 : current + 1);
-  });
-
-  document.getElementById('prevBtn')?.addEventListener('click', () => {
-    const current = $fb.turn('page');
-    $fb.turn('page', current <= 1 ? $fb.turn('pages') : current - 1);
-  });
-
-  // ── Hi-res button ─────────────────────────────────────────────────────
-  document.getElementById('hiresBtn')?.addEventListener('click', () => {
-    const btn = document.getElementById('hiresBtn');
-    const original = btn?.dataset.original;
-    const alt      = btn?.dataset.alt || '';
-    if (original) openHiresModal(original, alt);
+function bindStripHiRes(container) {
+  container.querySelectorAll('.panel__hires-trigger').forEach(btn => {
+    btn.addEventListener('click', () => openHiresModal(btn.dataset.original, btn.dataset.alt));
   });
 }
 
-// ─── Page renderers ───────────────────────────────────────────────────────
+// ─── Page-turn animation ──────────────────────────────────────────────────
+// direction: 'next' flips left-to-right, 'prev' flips right-to-left
+let flipping = false;
+
+function flipToArtist(href, direction) {
+  if (flipping) return;
+  flipping = true;
+
+  const card  = document.getElementById('flipCard');
+  const stage = document.getElementById('flipStage');
+  if (!card || !stage) { window.location.href = href; return; }
+
+  // Pick animation class
+  const animClass = direction === 'next' ? 'flip-exit--next' : 'flip-exit--prev';
+  card.classList.add(animClass);
+
+  card.addEventListener('animationend', () => {
+    window.location.href = href;
+  }, { once: true });
+
+  // Fallback if animationend never fires
+  setTimeout(() => { window.location.href = href; }, 900);
+}
+
+// ─── Intro page renderer ──────────────────────────────────────────────────
+function setEntryCount(n) {
+  const el = document.getElementById('entryCount');
+  if (el) el.textContent = `${n} ENTRIES`;
+}
 function renderIntro({ posts, postCount }) {
   const artistList = document.getElementById('artistList');
-  const entries = buildArtistEntries(posts, 'latest');
+  const entries    = buildArtistEntries(posts, 'latest');
   setEntryCount(postCount);
   artistList.innerHTML = entries.map(post =>
     `<li><a href="./artist.html?artist=${encodeURIComponent(post.slug)}">${escapeHtml(post.artist)}</a></li>`
   ).join('');
-  artistList.querySelectorAll('li').forEach((li,idx) => li.style.setProperty('--stagger', String(idx)));
+  artistList.querySelectorAll('li').forEach((li,idx) => li.style.setProperty('--stagger',String(idx)));
 }
 
+// ─── Artist page renderer ─────────────────────────────────────────────────
 function renderArtist({ posts }) {
   const params  = new URLSearchParams(window.location.search);
   const target  = params.get('artist');
@@ -442,76 +314,103 @@ function renderArtist({ posts }) {
   }
 
   const idx  = entries.findIndex(p=>p.slug===post.slug);
-  const prev = idx>0 ? entries[idx-1] : null;
-  const next = idx>=0 && idx<entries.length-1 ? entries[idx+1] : null;
+  const prev = idx > 0                     ? entries[idx-1] : null;
+  const next = idx < entries.length - 1   ? entries[idx+1] : null;
 
   document.title = `${post.artist} | What Is Art Comic`;
   document.getElementById('artistName').textContent = post.artist;
   document.getElementById('postDate').textContent   = post.date;
   document.getElementById('haikuText').textContent  = post.haiku;
 
-  const stepNav = document.getElementById('artistStepNav');
-  if (stepNav) stepNav.innerHTML = buildStepNavHtml(entries, post.slug, mode);
-  bindArtistKeyboard(prev, next, mode);
-
-  // Build panel data — optimised for display, original for hi-res modal
+  // Build panel data
   const panels = post.panels.map((src, i) => ({
     optimised: toOptimisedPath(src),
     original:  toOriginalPath(src),
     alt:       `${post.artist} — panel ${i + 1}`,
   }));
 
-  // Wait for jQuery + Turn.js, then init
-  const tryInit = () => {
-    if (typeof $ !== 'undefined' && typeof $.fn.turn === 'function') {
-      initFlipbook(panels);
-    } else {
-      setTimeout(tryInit, 60);
-    }
-  };
-  tryInit();
+  // Render front strip
+  const front = document.getElementById('panelStrip');
+  if (front) { front.innerHTML = buildStripHtml(panels); bindStripHiRes(front); }
 
-  // Classic strip below flipbook — panels are clickable for hi-res
-  const strip = document.getElementById('panelStrip');
-  if (strip) {
-    strip.innerHTML = panels.map((p) =>
-      `<figure class="panel">` +
-        `<button class="panel__hires-trigger" type="button"` +
-                ` aria-label="View hi-res: ${escapeHtml(p.alt)}"` +
-                ` data-original="${escapeHtml(p.original)}"` +
-                ` data-alt="${escapeHtml(p.alt)}">` +
-          `<img loading="lazy" src="${escapeHtml(p.optimised)}"` +
-               ` alt="${escapeHtml(p.alt)}"` +
-               ` onerror="this.src='${escapeHtml(p.original)}'" />` +
-          `<span class="panel__hires-badge" aria-hidden="true">HI-RES</span>` +
-        `</button>` +
-      `</figure>`
-    ).join('');
-
-    strip.querySelectorAll('.panel__hires-trigger').forEach(btn => {
-      btn.addEventListener('click', () => openHiresModal(btn.dataset.original, btn.dataset.alt));
+  // Hi-res button opens modal for panel 1 (user can click individual panels too)
+  const hiresBtn = document.getElementById('hiresBtn');
+  if (hiresBtn) {
+    hiresBtn.disabled          = false;
+    hiresBtn.dataset.original  = panels[0].original;
+    hiresBtn.dataset.alt       = panels[0].alt;
+    hiresBtn.addEventListener('click', () => {
+      openHiresModal(hiresBtn.dataset.original, hiresBtn.dataset.alt);
     });
   }
+
+  // ── Prev / Next nav buttons ───────────────────────────────────────────
+  const artistUrl = (entry) =>
+    `./artist.html?artist=${encodeURIComponent(entry.slug)}&mode=${encodeURIComponent(mode)}`;
+
+  const prevBtn   = document.getElementById('prevBtn');
+  const nextBtn   = document.getElementById('nextBtn');
+  const prevLabel = document.getElementById('prevLabel');
+  const nextLabel = document.getElementById('nextLabel');
+
+  if (prev) {
+    if (prevLabel) prevLabel.textContent = prev.artist;
+    prevBtn?.removeAttribute('disabled');
+    prevBtn?.addEventListener('click', () => flipToArtistWithStore(artistUrl(prev), 'prev'));
+  } else {
+    prevBtn?.setAttribute('disabled','');
+    if (prevLabel) prevLabel.textContent = '';
+  }
+
+  if (next) {
+    if (nextLabel) nextLabel.textContent = next.artist;
+    nextBtn?.removeAttribute('disabled');
+    nextBtn?.addEventListener('click', () => flipToArtistWithStore(artistUrl(next), 'next'));
+  } else {
+    nextBtn?.setAttribute('disabled','');
+    if (nextLabel) nextLabel.textContent = '';
+  }
+
+  // ── Keyboard nav ─────────────────────────────────────────────────────
+  window.addEventListener('keydown', e => {
+    if (e.defaultPrevented) return;
+    const tag = e.target?.tagName;
+    if (tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT') return;
+    if (e.key==='ArrowLeft'  && prev) { e.preventDefault(); flipToArtistWithStore(artistUrl(prev),'prev'); }
+    if (e.key==='ArrowRight' && next) { e.preventDefault(); flipToArtistWithStore(artistUrl(next),'next'); }
+  });
+
+  // ── Enter animation (strip flips in on load) ──────────────────────────
+  const card = document.getElementById('flipCard');
+  if (card) {
+    // Read entry direction from sessionStorage (set just before navigate)
+    const enterDir = sessionStorage.getItem('flipDirection') || 'next';
+    sessionStorage.removeItem('flipDirection');
+    card.classList.add(enterDir === 'prev' ? 'flip-enter--prev' : 'flip-enter--next');
+    card.addEventListener('animationend', () => {
+      card.classList.remove('flip-enter--next','flip-enter--prev');
+    }, { once: true });
+  }
+}
+
+// Store direction in sessionStorage before navigating so the new page knows how to enter
+function flipToArtistWithStore(href, direction) {
+  sessionStorage.setItem('flipDirection', direction);
+  flipToArtist(href, direction);
 }
 
 // ─── Bootstrap ────────────────────────────────────────────────────────────
 async function main() {
-  initConceptTicker();
   createModal();
-
-  window.addEventListener('resize', checkLandscape);
-  window.addEventListener('orientationchange', checkLandscape);
-  checkLandscape();
-
   try {
     const data = await getData();
     const page = document.body.getAttribute('data-page');
     renderReelBackdrop(data.reel);
-    if (page === 'intro')        renderIntro(data);
-    else if (page === 'artist')  renderArtist(data);
-  } catch (error) {
-    const target = document.getElementById('appError');
-    if (target) target.textContent = `Could not load Instagram export data: ${error.message}`;
+    if (page === 'intro')       renderIntro(data);
+    else if (page === 'artist') renderArtist(data);
+  } catch (err) {
+    const el = document.getElementById('appError');
+    if (el) el.textContent = `Could not load data: ${err.message}`;
   } finally {
     requestAnimationFrame(() => document.body.classList.add('is-loaded'));
   }

@@ -360,181 +360,141 @@ kbd { display: inline-block; padding: 2px 6px; font-family: var(--font-mono); fo
 .muted { opacity: 0.7; }
 
 /* ══════════════════════════════════════════════════════════════════════════
-   FLIPBOOK — Turn.js page-turn panel view
+   COMIC SECTION — full-width 4-panel strip
    ══════════════════════════════════════════════════════════════════════════ */
 
-/* Outer wrapper: sits below the step-nav / haiku box */
-.flipbook-section {
+.comic-section {
   margin-top: 20px;
 }
 
-.flipbook-shell {
+/* ── Flip stage: provides perspective for the 3-D turn ── */
+.flip-stage {
+  perspective: 1400px;
+  perspective-origin: 50% 40%;
+}
+
+/* ── Flip card: the element that actually rotates ── */
+.flip-card {
   position: relative;
-  background: #f2f0ec;
-  border-bottom: 8px groove #9a9590;
-  border-left:   8px ridge  #9a9590;
-  border-top:    2px solid  #9a9590;
-  border-right:  2px solid  #9a9590;
-  box-shadow: 0 12px 40px rgba(0,0,0,0.55);
-  overflow: hidden;
-  /* Fixed landscape ratio — matches inspiration layout */
-  width: 100%;
-  aspect-ratio: 4 / 3;
-  max-height: 68vh;
-}
-
-/* Turn.js container lives inside */
-#flipbook {
-  position: absolute;
-  inset: 0;
-  background: transparent;
-  perspective: 2000px;
-  perspective-origin: 50% 50%;
-}
-#flipbook .turn-viewport,
-#flipbook .turn-page-wrapper {
-  position: absolute !important;
-  top: 0; left: 0;
-  width: 100% !important;
-  height: 100% !important;
-  overflow: hidden !important;
-}
-#flipbook .turn-page { background: #f2f0ec; }
-
-/* Title page */
-.flipbook-title-page {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #f8f6f2;
-  border-right: 1px solid rgba(0,0,0,0.1);
-}
-.flipbook-title-page h2 {
-  font-family: var(--font-cursive);
-  font-weight: 400;
-  font-size: clamp(1.8rem, 5vw, 3.2rem);
-  color: #1a1612;
-  letter-spacing: 0.04em;
-  text-align: center;
-  padding: 0 20px;
-}
-
-/* Content page inside Turn.js */
-.flipbook-page {
-  width: 100%;
-  height: 100%;
-  display: table;         /* matches inspiration */
-  background: #f2f0ec;
-}
-.flipbook-comic-frame {
-  display: table-cell;
-  vertical-align: middle;
-  text-align: center;
-  padding: 16px;
-  background: #f2f0ec;
-}
-#flipbookImg {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-  display: inline-block;
-  transition: opacity 0.35s ease;
-  box-shadow: 0 8px 28px rgba(0,0,0,0.22);
-}
-
-/* Turn.js 3D page styling */
-.flipbook-shell .page,
-.flipbook-shell .hard {
   transform-style: preserve-3d;
-  -webkit-transform-style: preserve-3d;
-  backface-visibility: visible;
-  -webkit-backface-visibility: visible;
-}
-.flipbook-shell .page {
-  box-shadow: 0 5px 15px rgba(0,0,0,0.3), -5px 0 15px rgba(0,0,0,0.15);
-}
-.flipbook-shell .turning {
-  box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+  transform-origin: center center;
+  will-change: transform;
 }
 
-/* Spine border (decorative, from inspiration) */
-.flipbook-spine {
-  position: absolute;
-  top: 30px;
-  right: 0;
-  width: 1px;
-  height: 70%;
-  background: rgba(255,255,255,0.35);
-  z-index: 5;
-  pointer-events: none;
-  transition: background 0.2s;
+/* Exit animations — strip flips away before navigation */
+.flip-card.flip-exit--next {
+  animation: flipExitNext 0.55s cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+.flip-card.flip-exit--prev {
+  animation: flipExitPrev 0.55s cubic-bezier(0.4, 0, 1, 1) forwards;
 }
 
-/* Controls bar below the flipbook */
-.flipbook-controls {
-  display: flex;
+/* Enter animations — strip flips in on page load */
+.flip-card.flip-enter--next {
+  animation: flipEnterNext 0.6s cubic-bezier(0, 0, 0.2, 1) both;
+}
+.flip-card.flip-enter--prev {
+  animation: flipEnterPrev 0.6s cubic-bezier(0, 0, 0.2, 1) both;
+}
+
+@keyframes flipExitNext {
+  0%   { transform: rotateY(0deg) translateZ(0); opacity: 1; }
+  60%  { opacity: 0.6; }
+  100% { transform: rotateY(-90deg) translateZ(-40px) scaleX(0.85); opacity: 0; }
+}
+@keyframes flipExitPrev {
+  0%   { transform: rotateY(0deg) translateZ(0); opacity: 1; }
+  60%  { opacity: 0.6; }
+  100% { transform: rotateY(90deg) translateZ(-40px) scaleX(0.85); opacity: 0; }
+}
+@keyframes flipEnterNext {
+  0%   { transform: rotateY(90deg) translateZ(-40px) scaleX(0.85); opacity: 0; }
+  40%  { opacity: 0.6; }
+  100% { transform: rotateY(0deg) translateZ(0); opacity: 1; }
+}
+@keyframes flipEnterPrev {
+  0%   { transform: rotateY(-90deg) translateZ(-40px) scaleX(0.85); opacity: 0; }
+  40%  { opacity: 0.6; }
+  100% { transform: rotateY(0deg) translateZ(0); opacity: 1; }
+}
+
+/* Back face (unused visually, just needed for transform-style) */
+.flip-card__face--back { display: none; }
+
+/* Override strip sizing on the artist page — panels taller, no 2-col fallback */
+body[data-page="artist"] .strip-1x4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  box-shadow: 12px 12px 0 #000;
+}
+body[data-page="artist"] .panel {
+  aspect-ratio: 3 / 4;
+}
+body[data-page="artist"] .panel img,
+body[data-page="artist"] .panel__hires-trigger img {
+  filter: none;  /* show in colour on artist page */
+}
+
+/* ── Comic nav row ── */
+.comic-nav {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  justify-content: space-between;
   gap: 10px;
-  margin-top: 12px;
-  padding: 0 2px;
+  margin-top: 14px;
 }
 
-.flipbook-btn {
+.comic-nav__btn {
   display: flex;
   align-items: center;
-  justify-content: center;
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  border: 2px solid rgba(232,228,220,0.45);
-  background: var(--void-mid);
+  gap: 8px;
+  padding: 12px 16px;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
   color: var(--plinth);
-  font-size: 1.5rem;
-  line-height: 1;
+  background: var(--void-mid);
+  border: 2px solid rgba(0,255,200,0.3);
   cursor: pointer;
   transition: border-color 0.2s, background 0.2s, transform 0.15s;
-  flex-shrink: 0;
+  min-width: 0;
+  overflow: hidden;
 }
-.flipbook-btn:hover,
-.flipbook-btn:focus-visible {
+.comic-nav__btn:hover:not(:disabled),
+.comic-nav__btn:focus-visible:not(:disabled) {
   outline: none;
   border-color: var(--signal);
   background: var(--wire);
-  transform: scale(1.08);
+  transform: translateY(-2px);
 }
-.flipbook-btn:active { transform: scale(0.96); }
+.comic-nav__btn:active:not(:disabled) { transform: translateY(0); }
+.comic-nav__btn:disabled {
+  opacity: 0.25;
+  cursor: default;
+  pointer-events: none;
+}
+.comic-nav__btn--prev { justify-content: flex-start; }
+.comic-nav__btn--next { justify-content: flex-end; }
 
-.flipbook-meta {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  flex: 1;
+.comic-nav__arrow {
+  font-size: 1.2rem;
+  flex-shrink: 0;
 }
-#flipbookCount {
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  color: rgba(232,228,220,0.6);
-  letter-spacing: 0.1em;
-}
-#flipbookHint {
-  font-family: var(--font-mono);
-  font-size: 0.62rem;
-  color: rgba(232,228,220,0.35);
-  letter-spacing: 0.06em;
+.comic-nav__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.7rem;
+  opacity: 0.8;
 }
 
-/* Hi-res button */
+/* Hi-res button (centre of nav row) */
 .hires-btn {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 10px 16px;
+  padding: 12px 18px;
   font-family: var(--font-mono);
-  font-size: 0.7rem;
+  font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -545,18 +505,20 @@ kbd { display: inline-block; padding: 2px 6px; font-family: var(--font-mono); fo
   cursor: pointer;
   transition: transform 0.15s, box-shadow 0.15s;
   flex-shrink: 0;
+  white-space: nowrap;
 }
-.hires-btn:hover,
-.hires-btn:focus-visible {
+.hires-btn:hover:not(:disabled),
+.hires-btn:focus-visible:not(:disabled) {
   outline: none;
   transform: translate(-1px,-1px);
   box-shadow: 4px 4px 0 #000;
 }
-.hires-btn:active {
+.hires-btn:active:not(:disabled) {
   transform: translate(2px,2px);
   box-shadow: 1px 1px 0 #000;
 }
-.hires-btn__icon { font-size: 0.95rem; }
+.hires-btn:disabled { opacity: 0.35; cursor: default; }
+.hires-btn__icon { font-size: 0.9rem; }
 
 /* ══════════════════════════════════════════════════════════════════════════
    HI-RES MODAL
@@ -573,167 +535,54 @@ kbd { display: inline-block; padding: 2px 6px; font-family: var(--font-mono); fo
   pointer-events: none;
   transition: opacity 0.28s var(--ease-out);
 }
-#hiresModal.is-open {
-  opacity: 1;
-  pointer-events: auto;
-}
+#hiresModal.is-open { opacity: 1; pointer-events: auto; }
 .hires-modal__backdrop {
-  position: absolute;
-  inset: 0;
+  position: absolute; inset: 0;
   background: rgba(7,7,10,0.92);
   cursor: zoom-out;
   backdrop-filter: blur(4px);
 }
 .hires-modal__shell {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  max-width: min(94vw, 900px);
-  max-height: 92dvh;
-  padding: 16px;
+  position: relative; z-index: 1;
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+  max-width: min(94vw, 900px); max-height: 92dvh; padding: 16px;
 }
 .hires-modal__stage {
-  position: relative;
-  max-width: 100%;
-  max-height: calc(92dvh - 80px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  position: relative; max-width: 100%; max-height: calc(92dvh - 80px);
+  display: flex; align-items: center; justify-content: center;
 }
 .hires-modal__img {
-  display: block;
-  max-width: 100%;
-  max-height: calc(92dvh - 80px);
-  object-fit: contain;
-  box-shadow: 0 24px 80px rgba(0,0,0,0.7);
-  transition: opacity 0.3s ease;
-  border: 2px solid rgba(232,228,220,0.12);
+  display: block; max-width: 100%; max-height: calc(92dvh - 80px);
+  object-fit: contain; box-shadow: 0 24px 80px rgba(0,0,0,0.7);
+  transition: opacity 0.3s ease; border: 2px solid rgba(232,228,220,0.12);
 }
 .hires-modal__loader {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  font-family: var(--font-mono);
-  font-size: 0.78rem;
-  color: rgba(232,228,220,0.6);
-  letter-spacing: 0.08em;
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;
+  font-family: var(--font-mono); font-size: 0.78rem; color: rgba(232,228,220,0.6); letter-spacing: 0.08em;
 }
 .hires-modal__spinner {
-  width: 28px;
-  height: 28px;
-  border: 2px solid rgba(0,255,200,0.2);
-  border-top-color: var(--signal);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
+  width: 28px; height: 28px;
+  border: 2px solid rgba(0,255,200,0.2); border-top-color: var(--signal);
+  border-radius: 50%; animation: spin 0.8s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 .hires-modal__caption {
-  margin: 0;
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  color: rgba(232,228,220,0.55);
-  letter-spacing: 0.06em;
-  text-align: center;
-  max-width: 60ch;
+  margin: 0; font-family: var(--font-mono); font-size: 0.72rem;
+  color: rgba(232,228,220,0.55); letter-spacing: 0.06em;
+  text-align: center; max-width: 60ch;
 }
 .hires-modal__close {
-  position: fixed;
-  top: 16px;
-  right: 16px;
-  z-index: 2;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  border: 2px solid rgba(232,228,220,0.35);
-  background: rgba(7,7,10,0.85);
-  color: var(--plinth);
-  font-size: 1.05rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  position: fixed; top: 16px; right: 16px; z-index: 2;
+  width: 44px; height: 44px; border-radius: 50%;
+  border: 2px solid rgba(232,228,220,0.35); background: rgba(7,7,10,0.85);
+  color: var(--plinth); font-size: 1.05rem; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
   transition: border-color 0.2s, background 0.2s;
 }
 .hires-modal__close:hover,
 .hires-modal__close:focus-visible {
-  outline: none;
-  border-color: var(--heat);
-  background: rgba(255,59,92,0.18);
-}
-
-/* ══════════════════════════════════════════════════════════════════════════
-   ORIENTATION WARNING
-   ══════════════════════════════════════════════════════════════════════════ */
-
-#orientationWarning {
-  position: fixed;
-  inset: 0;
-  z-index: 8000;
-  background: rgba(7,7,10,0.97);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 20px;
-  padding: 32px;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s;
-}
-#orientationWarning.is-visible {
-  opacity: 1;
-  pointer-events: auto;
-}
-.orientation-icon {
-  font-size: 3rem;
-  animation: rotate-hint 2s ease-in-out infinite;
-}
-@keyframes rotate-hint {
-  0%, 100% { transform: rotate(0deg); }
-  40%       { transform: rotate(-90deg); }
-  60%       { transform: rotate(-90deg); }
-}
-.orientation-title {
-  font-family: var(--font-cursive);
-  font-size: clamp(1.6rem, 7vw, 2.4rem);
-  color: var(--plinth);
-  text-align: center;
-  margin: 0;
-}
-.orientation-body {
-  font-family: var(--font-mono);
-  font-size: 0.82rem;
-  color: rgba(232,228,220,0.65);
-  text-align: center;
-  max-width: 30ch;
-  line-height: 1.6;
-}
-
-/* ══════════════════════════════════════════════════════════════════════════
-   FADE IN LETTER/WORD (from inspiration)
-   ══════════════════════════════════════════════════════════════════════════ */
-.fade-in-letter {
-  opacity: 0;
-  display: inline-block;
-  animation: fadeInChar 1.6s ease-out forwards;
-  animation-delay: var(--delay, 0s);
-}
-.fade-in-word {
-  opacity: 0;
-  display: inline-block;
-  animation: fadeInChar 0.6s ease-out forwards;
-  animation-delay: var(--delay, 0s);
-}
-@keyframes fadeInChar {
-  0%   { opacity: 0; transform: translateY(20px) rotate(var(--rotate-start, 0deg)); }
-  100% { opacity: 1; transform: translateY(0) rotate(0deg); }
+  outline: none; border-color: var(--heat); background: rgba(255,59,92,0.18);
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -743,12 +592,16 @@ kbd { display: inline-block; padding: 2px 6px; font-family: var(--font-mono); fo
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
   .atmosphere__grain { animation: none; }
   .index-panel, .panel { transform: none !important; }
   .panel:hover, .panel:focus-within { filter: none; }
   body.is-loaded .artist-list li { opacity: 1; transform: none; animation: none; }
-  #flipbookImg { transition: none; }
+  .flip-card { animation: none !important; }
 }
 
 @media (max-width: 960px) {
@@ -756,11 +609,13 @@ kbd { display: inline-block; padding: 2px 6px; font-family: var(--font-mono); fo
   body[data-page="intro"] .concept-shell { grid-template-columns: 1fr; gap: 10px; }
   body[data-page="intro"] .stage { display: block; }
   .reel-backdrop { width: var(--reel-band-width); }
-  .hero, .artist-layout { grid-template-columns: 1fr; }
+  .hero { grid-template-columns: 1fr; }
   .hero--intro { margin-top: 14px; }
   .index-panel { transform: none; max-height: none; }
-  .strip-1x4 { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; }
-  .flipbook-shell { aspect-ratio: 3 / 2; }
+  /* Keep strip 4-wide on artist page even at tablet — panels just get narrower */
+  body[data-page="artist"] .strip-1x4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .comic-nav { gap: 6px; }
+  .comic-nav__label { display: none; }
 }
 
 @media (max-width: 560px) {
@@ -773,10 +628,7 @@ kbd { display: inline-block; padding: 2px 6px; font-family: var(--font-mono); fo
   .reel-sound-btn { font-size: 0.66rem; padding: 9px 12px; }
   .page { padding-left: 14px; padding-right: 14px; }
   .concept-shell { padding-left: 14px; padding-right: 14px; }
-  .strip-1x4 { grid-template-columns: 1fr; gap: 1px; }
-  .artist-step-nav { grid-template-columns: 1fr; }
-  .step-link--next, .step-link--dead.step-link--next { text-align: left; align-items: flex-start; }
-  .flipbook-controls { flex-wrap: wrap; justify-content: center; }
+  /* 2×2 grid on mobile */
+  body[data-page="artist"] .strip-1x4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .hires-btn span:not(.hires-btn__icon) { display: none; }
-  .flipbook-shell { aspect-ratio: 1 / 1; max-height: 55vw; }
 }
