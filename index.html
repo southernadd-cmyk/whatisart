@@ -3,65 +3,208 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>What Is Art Comic Showcase</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-   <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
-
-<link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
-<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
-<link rel="manifest" href="site.webmanifest">
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,600;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <title>whatisart.comic · What Is Art</title>
+  <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  <link rel="manifest" href="site.webmanifest">
   <link rel="stylesheet" href="./style.css" />
 </head>
 <body data-page="intro">
+  <!-- Kept for JS compat, now hidden -->
   <div class="reel-backdrop" id="reelBackdrop" aria-hidden="true"></div>
-
-  <button type="button" class="reel-sound-btn" id="reelSoundBtn" hidden aria-pressed="false" aria-label="Turn sound on for the background reel">
-    Sound on
-  </button>
-
+  <button type="button" class="reel-sound-btn" id="reelSoundBtn" hidden>Sound on</button>
   <div class="atmosphere" aria-hidden="true">
     <div class="atmosphere__grain"></div>
     <div class="atmosphere__scan"></div>
     <div class="atmosphere__grid"></div>
   </div>
 
-  <header class="concept-shell">
+  <!-- IG top bar -->
+  <nav class="ig-topbar" aria-label="Site navigation">
+    <span class="ig-topbar__wordmark"><span>What Is Art</span></span>
+    <div class="ig-topbar__icons">
+      <button class="ig-topbar__icon-btn" aria-label="Search" title="Search">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </button>
+      <a href="./statement.html" class="ig-topbar__icon-btn" aria-label="Artist statement" title="Artist statement">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      </a>
+    </div>
+  </nav>
+
+  <!-- Profile section -->
+  <div class="ig-profile">
+    <div class="ig-profile__row">
+      <div class="ig-profile__avatar-wrap" aria-hidden="true">
+        <div class="ig-profile__avatar-inner">
+          <div class="ig-profile__avatar-placeholder">🎨</div>
+        </div>
+      </div>
+      <div class="ig-profile__info">
+        <h1 class="ig-profile__username">whatisart.comic</h1>
+        <div class="ig-profile__actions">
+          <a href="./statement.html" class="ig-btn ig-btn--secondary">Statement</a>
+        </div>
+        <div class="ig-profile__stats">
+          <div class="ig-profile__stat">
+            <span class="ig-profile__stat-value" id="entryCount">—</span>
+            <span class="ig-profile__stat-label">posts</span>
+          </div>
+          <div class="ig-profile__stat">
+            <span class="ig-profile__stat-value">∞</span>
+            <span class="ig-profile__stat-label">followers</span>
+          </div>
+          <div class="ig-profile__stat">
+            <span class="ig-profile__stat-value">0</span>
+            <span class="ig-profile__stat-label">following</span>
+          </div>
+        </div>
+        <p class="ig-profile__bio">AI-generated portraits paired with artist quotes and original haiku. Asking what art is—by impersonating it.</p>
+        <a href="./statement.html" class="ig-profile__bio-link">Artist statement ↗</a>
+        <span class="ig-profile__bio-note">#whatisart · #aiart · #haiku</span>
+      </div>
+    </div>
+
+    <!-- Highlights as category shortcuts -->
+    <div class="ig-highlights" id="highlightsRow" aria-label="Highlights">
+      <!-- Populated by JS -->
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="ig-tabs" role="tablist">
+    <button class="ig-tab is-active" role="tab" aria-selected="true">
+      <svg viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      Posts
+    </button>
+  </div>
+
+  <!-- Old hero/index hidden -->
+  <header class="concept-shell" style="display:none">
     <div class="concept-shell__meta">
-      <span class="specimen-id" id="entryCount"></span>
+      <span class="specimen-id" id="entryCountHidden"></span>
     </div>
   </header>
 
-  <main class="page" id="main">
-    <section class="stage">
-      <div class="stage__titleblock">
-        <h1 class="site-title" data-text="What Is Art: Comic Archive">What Is Art: Comic Archive</h1>
-        <p class="project-intro">
-          AI-generated portraits paired with artist quotes and original haiku, exploring authorship, impersonation, and the boundaries of the "artist" category.
-          <!-- Originally published on Instagram @whatisart.comic -->
-        </p>
-        <p class="header-links">
-        <!--  <a href="https://www.instagram.com/whatisart.comic/" target="_blank" rel="noopener noreferrer">View on Instagram: @whatisart.comic</a> -->
-          <a href="./statement.html">View artist statement</a>
-        </p>
-      </div>
+  <main class="page" id="main" style="padding:0">
+    <div id="appError" class="app-error" role="alert"></div>
 
-      <div id="appError" class="app-error" role="alert"></div>
+    <!-- The artist grid -->
+    <div class="ig-grid" id="artistGrid" aria-label="Artist posts"></div>
 
-      <div class="hero hero--intro">
+    <!-- Hidden artist list for JS compat -->
+    <div class="stage" style="display:none">
+      <div class="hero hero--intro" style="display:none">
         <aside class="index-panel">
-          <div class="index-panel__head">
-            <h2 class="index-panel__title">Index</h2>
-            <p class="index-panel__note">Open an artist page to view the 1x4 comic strip and haiku.</p>
-          </div>
           <ul class="artist-list" id="artistList"></ul>
         </aside>
       </div>
-    </section>
+    </div>
   </main>
 
+  <!-- Mobile bottom nav -->
+  <nav class="ig-bottombar" aria-label="Bottom navigation">
+    <a href="./index.html" class="ig-bottombar__btn is-active" aria-label="Home">🏠</a>
+    <button class="ig-bottombar__btn" aria-label="Search">🔍</button>
+    <a href="./statement.html" class="ig-bottombar__btn" aria-label="Artist statement">ℹ️</a>
+  </nav>
+
   <script src="./app.js"></script>
+  <script>
+    // Build IG grid from artist list once app.js populates it
+    function buildGrid() {
+      const list = document.getElementById('artistList');
+      const grid = document.getElementById('artistGrid');
+      const items = list ? list.querySelectorAll('li') : [];
+      if (!items.length) return;
+
+      grid.innerHTML = '';
+
+      // Build highlight bubbles (first 8 letters A-Z or categories)
+      const letters = [...new Set([...items].map(li => {
+        const a = li.querySelector('a');
+        return a ? a.textContent.trim()[0].toUpperCase() : null;
+      }).filter(Boolean))].slice(0, 12);
+
+      const hlRow = document.getElementById('highlightsRow');
+      if (hlRow) {
+        hlRow.innerHTML = '';
+        const allHL = document.createElement('a');
+        allHL.href = '#';
+        allHL.className = 'ig-highlight';
+        allHL.innerHTML = `<div class="ig-highlight__ring"><div class="ig-highlight__inner">🎨</div></div><span class="ig-highlight__label">All</span>`;
+        hlRow.appendChild(allHL);
+        letters.forEach(letter => {
+          const hl = document.createElement('a');
+          hl.href = '#';
+          hl.className = 'ig-highlight';
+          hl.innerHTML = `<div class="ig-highlight__ring" style="background:var(--story-ring);padding:2px"><div class="ig-highlight__inner" style="background:var(--ig-bg)">${letter}</div></div><span class="ig-highlight__label">${letter}</span>`;
+          hlRow.appendChild(hl);
+        });
+      }
+
+      items.forEach((li, i) => {
+        const a = li.querySelector('a');
+        if (!a) return;
+        const href = a.getAttribute('href');
+        const name = a.textContent.trim();
+
+        const cell = document.createElement('a');
+        cell.href = href;
+        cell.className = 'ig-grid__item';
+        cell.setAttribute('aria-label', name);
+
+        // Try to get panel image from the list item if available
+        const img = li.querySelector('img');
+        if (img) {
+          const gridImg = document.createElement('img');
+          gridImg.className = 'ig-grid__img';
+          gridImg.src = img.src;
+          gridImg.alt = name;
+          gridImg.loading = 'lazy';
+          cell.appendChild(gridImg);
+        } else {
+          // Placeholder with initials
+          const initials = name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+          const ph = document.createElement('div');
+          ph.className = 'ig-grid__placeholder';
+          ph.textContent = initials;
+          cell.appendChild(ph);
+        }
+
+        // Multi-image badge
+        const badge = document.createElement('span');
+        badge.className = 'ig-grid__badge';
+        badge.setAttribute('aria-hidden', 'true');
+        badge.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M2 6a4 4 0 014-4h12a4 4 0 014 4v12a4 4 0 01-4 4H6a4 4 0 01-4-4V6zm4-2a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H6zm4 11V9l5 3-5 3z"/></svg>`;
+        cell.appendChild(badge);
+
+        // Name hover overlay
+        const nameEl = document.createElement('span');
+        nameEl.className = 'ig-grid__name';
+        nameEl.textContent = name;
+        cell.appendChild(nameEl);
+
+        grid.appendChild(cell);
+      });
+
+      // Update post count
+      const countEl = document.getElementById('entryCount');
+      if (countEl) countEl.textContent = items.length;
+    }
+
+    // Watch for list to be populated
+    const observer = new MutationObserver(() => {
+      const list = document.getElementById('artistList');
+      if (list && list.children.length > 0) {
+        buildGrid();
+        observer.disconnect();
+      }
+    });
+    const list = document.getElementById('artistList');
+    if (list) observer.observe(list, { childList: true });
+  </script>
 </body>
 </html>

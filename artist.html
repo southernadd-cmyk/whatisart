@@ -5,32 +5,44 @@
   <style>html { visibility: hidden; } html.ready { visibility: visible; }</style>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>What Is Art Comic</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <title>What Is Art</title>
   <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
   <link rel="manifest" href="site.webmanifest">
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,600;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="./style.css" />
 </head>
 <body data-page="artist">
 
+  <!-- Kept for JS compat, hidden by CSS -->
   <div class="reel-backdrop" id="reelBackdrop" aria-hidden="true"></div>
-  <button type="button" class="reel-sound-btn" id="reelSoundBtn" hidden aria-pressed="false" aria-label="Turn sound on for the background reel">Sound on</button>
-
+  <button type="button" class="reel-sound-btn" id="reelSoundBtn" hidden>Sound on</button>
   <div class="atmosphere" aria-hidden="true">
     <div class="atmosphere__grain"></div>
     <div class="atmosphere__scan"></div>
     <div class="atmosphere__grid"></div>
   </div>
 
-  <header class="concept-shell concept-shell--compact">
+  <!-- IG top bar -->
+  <nav class="ig-topbar" aria-label="Post navigation">
+    <a href="./index.html" class="ig-topbar__icon-btn" aria-label="Back to grid" style="gap:8px; font-size:14px; font-weight:600; text-decoration:none; color:inherit">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      Posts
+    </a>
+    <span class="ig-topbar__wordmark" style="position:absolute;left:50%;transform:translateX(-50%)"><span>What Is Art</span></span>
+    <div class="ig-topbar__icons">
+      <!-- Hires button in topbar — proxies to real #hiresBtn below -->
+      <button class="ig-topbar__icon-btn" id="hiresBtnProxy" aria-label="View hi-res" title="View hi-res" style="opacity:0.4;pointer-events:none">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Old compat header (hidden) -->
+  <header class="concept-shell concept-shell--compact" style="display:none">
     <div class="concept-shell__meta">
       <span class="specimen-id"><a href="./index.html" class="back-link">← Index</a></span>
-      <span class="specimen-id specimen-id--right" id="postDate"></span>
     </div>
   </header>
 
@@ -38,17 +50,29 @@
     <div id="appError" class="app-error" role="alert"></div>
     <div id="artistPage">
 
-      <div class="stage stage--artist">
+      <!-- IG post header -->
+      <div class="ig-post-header">
+        <a href="./index.html" class="ig-post-header__avatar" aria-label="whatisart.comic">
+          <div class="ig-post-header__avatar-inner">🎨</div>
+        </a>
+        <div class="ig-post-header__info">
+          <a href="./index.html" class="ig-post-header__username">whatisart.comic</a>
+          <!-- app.js writes artist name to #artistName (h1) — we mirror it here -->
+          <span class="ig-post-header__location" id="artistLocation">Loading…</span>
+        </div>
+        <button class="ig-post-header__more" aria-label="More options">···</button>
+      </div>
+
+      <!-- Hidden stage — app.js uses h1#artistName and #artistStepNav -->
+      <div class="stage stage--artist" style="display:none">
         <div class="stage__titleblock stage__titleblock--artist">
           <h1 class="site-title site-title--artist" id="artistName"></h1>
         </div>
         <div class="artist-step-nav" id="artistStepNav" aria-label="Browse artists"></div>
       </div>
 
-      <!-- Comic strip with page-turn nav -->
+      <!-- Comic strip -->
       <section class="comic-section">
-
-        <!-- The strip is wrapped in a flip-stage for the 3D turn effect -->
         <div class="flip-stage" id="flipStage">
           <div class="flip-card" id="flipCard">
             <div class="flip-card__face flip-card__face--front">
@@ -60,16 +84,52 @@
           </div>
         </div>
 
-        <!-- Nav row: prev artist / hi-res / next artist -->
+        <!-- Slide dots (4 panels) -->
+        <div class="ig-dots" aria-hidden="true">
+          <div class="ig-dot is-active"></div>
+          <div class="ig-dot"></div>
+          <div class="ig-dot"></div>
+          <div class="ig-dot"></div>
+        </div>
+
+        <!-- IG action bar -->
+        <div class="ig-actions">
+          <button class="ig-action-btn ig-action-btn--heart" aria-label="Like">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+          </button>
+          <button class="ig-action-btn" aria-label="Comment">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+          </button>
+          <button class="ig-action-btn" aria-label="Share">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+          <button class="ig-action-btn ig-action-btn--save" aria-label="Save">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
+          </button>
+        </div>
+
+        <!-- Caption: haiku lives here -->
+        <div class="ig-caption">
+          <span class="ig-caption__username">whatisart.comic</span>
+          <!-- app.js writes to #haikuText -->
+          <pre class="ig-caption__haiku" id="haikuText"></pre>
+          <span class="ig-caption__tags">#whatisart #aiart #haiku</span>
+        </div>
+
+        <!-- Timestamp: app.js writes to #postDate -->
+        <div class="ig-timestamp" id="postDate"></div>
+
+        <!-- Prev / Next nav row -->
         <div class="comic-nav">
           <button type="button" class="comic-nav__btn comic-nav__btn--prev" id="prevBtn" aria-label="Previous artist">
             <span class="comic-nav__arrow" aria-hidden="true">←</span>
             <span class="comic-nav__label" id="prevLabel"></span>
           </button>
 
+          <!-- Real hiresBtn that app.js looks for -->
           <button type="button" class="hires-btn" id="hiresBtn" disabled>
             <span class="hires-btn__icon" aria-hidden="true">⬛</span>
-            <span>View hi-res</span>
+            <span>Hi-res</span>
           </button>
 
           <button type="button" class="comic-nav__btn comic-nav__btn--next" id="nextBtn" aria-label="Next artist">
@@ -80,15 +140,51 @@
 
       </section>
 
-      <!-- Haiku -->
-      <aside class="haiku-box" style="margin-top: 20px;">
+      <!-- Hidden haiku box — app.js doesn't use this on artist page, but keep for safety -->
+      <aside class="haiku-box" style="display:none">
         <p class="haiku-label">Haiku</p>
-        <pre class="haiku" id="haikuText"></pre>
+        <pre class="haiku"></pre>
       </aside>
 
     </div>
   </main>
 
+  <!-- Mobile bottom nav -->
+  <nav class="ig-bottombar" aria-label="Bottom navigation">
+    <a href="./index.html" class="ig-bottombar__btn" aria-label="Home">🏠</a>
+    <button class="ig-bottombar__btn" aria-label="Search">🔍</button>
+    <a href="./statement.html" class="ig-bottombar__btn" aria-label="Artist statement">ℹ️</a>
+    <a href="https://www.instagram.com/whatisart.comic/" target="_blank" rel="noopener noreferrer" class="ig-bottombar__btn" aria-label="Instagram">📷</a>
+  </nav>
+
   <script src="./app.js"></script>
+  <script>
+    // Mirror artist name from hidden h1 to the visible location label
+    const nameTarget = document.getElementById('artistLocation');
+    const nameSource = document.getElementById('artistName');
+    if (nameSource && nameTarget) {
+      const obs = new MutationObserver(() => {
+        const t = nameSource.textContent.trim();
+        if (t) {
+          nameTarget.textContent = t;
+          document.title = t + ' · whatisart.comic';
+        }
+      });
+      obs.observe(nameSource, { childList: true, subtree: true, characterData: true });
+    }
+
+    // Mirror hiresBtn enabled state to topbar proxy
+    const realBtn = document.getElementById('hiresBtn');
+    const proxyBtn = document.getElementById('hiresBtnProxy');
+    if (realBtn && proxyBtn) {
+      const btnObs = new MutationObserver(() => {
+        const disabled = realBtn.disabled;
+        proxyBtn.style.opacity = disabled ? '0.4' : '1';
+        proxyBtn.style.pointerEvents = disabled ? 'none' : 'auto';
+      });
+      btnObs.observe(realBtn, { attributes: true, attributeFilter: ['disabled'] });
+      proxyBtn.addEventListener('click', () => realBtn.click());
+    }
+  </script>
 </body>
 </html>
