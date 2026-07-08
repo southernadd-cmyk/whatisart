@@ -173,20 +173,29 @@ function setupReelBackdrop(video) {
   syncLabel();
   btn.addEventListener('click', () => { video.muted=!video.muted; play(); syncLabel(); });
 }
-function renderReelBackdrop(reel) {
+function renderReelBackdrop() {
   const el  = document.getElementById('reelBackdrop');
   const btn = document.getElementById('reelSoundBtn');
+
   if (!el) return;
-  if (reel?.src) {
-    const src = './' + reel.src.replace(/^\.?\//,'');
-    el.innerHTML = `<video class="reel-backdrop__video" src="${src}" autoplay loop muted playsinline preload="auto"></video><div class="reel-backdrop__scrim" aria-hidden="true"></div>`;
-    setupReelBackdrop(el.querySelector('video'));
-    document.body.classList.add('has-reel-bg');
-  } else {
-    el.innerHTML = '';
-    document.body.classList.remove('has-reel-bg');
-    if (btn) btn.hidden = true;
-  }
+
+  const src = 'https://southernadd-cmyk.github.io/whatisart/media/reels/dance.webm';
+
+  el.innerHTML = `
+    <video
+      class="reel-backdrop__video"
+      src="${src}"
+      autoplay
+      loop
+      muted
+      playsinline
+      preload="auto">
+    </video>
+    <div class="reel-backdrop__scrim" aria-hidden="true"></div>
+  `;
+
+  setupReelBackdrop(el.querySelector('video'));
+  document.body.classList.add('has-reel-bg');
 }
 
 // ─── Hi-res modal ─────────────────────────────────────────────────────────
@@ -397,7 +406,7 @@ async function main() {
   try {
     const data = await getData();
     const page = document.body.getAttribute('data-page');
-    renderReelBackdrop(data.reel);
+    renderReelBackdrop();
     if (page === 'intro')       renderIntro(data);
     else if (page === 'artist') renderArtist(data);
   } catch (err) {
